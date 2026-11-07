@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A4G Labs Models</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="AI for Good Lab, Korea National Open University">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Merriweather:wght@700;900&display=swap">
+<style>
+/* Layout: the planet on the night side, quiet lists under it, no boxes. Copper is the lab's accent, as on the Rescene-ESM page. */
+:root {
+  --abyss: #050b14; --fg: #edf2f5; --muted: #9fb0be; --line: rgba(165, 195, 220, .2); --grid: rgba(165, 195, 220, .1);
+  --copper: #e09a5f; --warm: #ff8250; --cool: #5fcbea; --quiet: #7f93a5;
+  --display: "Merriweather", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--abyss); -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--abyss); color: var(--fg); font: 400 16px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 40px; }
+a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 3px; }
+a:hover { color: var(--copper); text-decoration-color: currentColor; }
+a:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+h1, h2, h3, p, ul, ol, dl, dd { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+.wrap { max-width: 1080px; margin-inline: auto; display: grid; gap: clamp(40px, 6vw, 72px); }
+header { max-width: 1080px; margin-inline: auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px; padding-block: 20px clamp(28px, 4vw, 44px); }
+.brand { font: 900 18px/1.2 var(--display); text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 14.5px; }
+nav a { text-decoration: none; color: var(--muted); padding-block: 4px; }
+nav a[aria-current] { color: var(--fg); box-shadow: 0 1px 0 var(--copper); }
+h1 { font: 900 clamp(30px, 4vw, 48px)/1.08 var(--display); letter-spacing: -.01em; text-wrap: balance; }
+h2 { font: 500 12px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--copper); margin-bottom: 14px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* home */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 16px; align-items: center; }
+.hero h1 { font-size: clamp(46px, 7vw, 88px); }
+.hero p { color: var(--muted); font-size: clamp(16px, 1.5vw, 19px); margin-top: 14px; }
+.globe { display: block; position: relative; text-decoration: none; }
+.globe img { display: block; width: 100%; height: auto; aspect-ratio: 1; transition: transform .5s ease;
+  -webkit-mask-image: radial-gradient(closest-side, #000 90%, transparent 100%); mask-image: radial-gradient(closest-side, #000 90%, transparent 100%); }
+.globe:hover img { transform: scale(1.02); }
+.globe span { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); white-space: nowrap; font: 500 13px/1 var(--mono); color: var(--fg); }
+@media (prefers-reduced-motion: reduce) { .globe img { transition: none; } .globe:hover img { transform: none; } }
+.two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px clamp(32px, 6vw, 72px); }
+.rows > li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding-block: 10px; border-top: 1px solid var(--line); }
+.rows .mono { font-size: 13px; line-height: 1.75; color: var(--muted); }
+.topic { padding-block: 10px; border-top: 1px solid var(--line); }
+.topic b { display: block; font-weight: 600; }
+.topic span { color: var(--muted); font-size: 14.5px; }
+
+/* models */
+.chart { display: grid; gap: 2px; position: relative; padding-bottom: 26px; --name: 112px; }
+.bar-row { display: grid; grid-template-columns: var(--name) minmax(0, 1fr); align-items: center; min-height: 30px; font-size: 13.5px; }
+.bar-row a { text-decoration: none; }
+.bar-track { position: relative; height: 8px; }
+.bar { position: absolute; top: 0; height: 8px; border-radius: 4px; background: var(--c); min-width: 8px; }
+.grid-lines { position: absolute; left: var(--name); right: 0; top: 0; bottom: 26px; pointer-events: none; }
+.grid-lines i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+.axis { position: absolute; left: var(--name); right: 0; bottom: 0; height: 22px; border-top: 1px solid var(--line); }
+.axis span { position: absolute; top: 6px; font: 400 11px/1 var(--mono); color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+.axis span:last-child { transform: translateX(-100%); }
+.f-weather { --c: var(--cool); } .f-hazard { --c: var(--warm); } .f-tools { --c: var(--quiet); }
+.model { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 124px); gap: 6px 24px; padding-block: 16px; border-top: 1px solid var(--line); align-items: baseline; scroll-margin-top: 16px; }
+.model h3 { font: 700 18px/1.25 var(--display); }
+.model .what { color: var(--muted); font-size: 14px; display: block; margin-top: 2px; }
+.model .big { display: block; font: 500 20px/1.25 var(--mono); font-variant-numeric: tabular-nums; }
+.model .cap { color: var(--muted); font-size: 14px; display: block; margin-top: 2px; }
+.links { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 14px; justify-content: flex-end; }
+.links a { color: var(--copper); }
+.groups { display: grid; gap: 40px; }
+
+/* publications, members, lectures */
+.pub { padding-block: 14px; border-top: 1px solid var(--line); }
+.pub a { font-weight: 500; }
+.pub p { color: var(--muted); font-size: 14.5px; margin-top: 3px; }
+.who h1 small { font: 400 .55em/1 var(--body); color: var(--muted); margin-left: 8px; letter-spacing: 0; }
+.who > p { color: var(--muted); margin-top: 10px; }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px clamp(24px, 4vw, 48px); }
+.plain > li { padding-block: 8px; border-top: 1px solid var(--line); font-size: 15px; }
+.plain .mono { display: block; font-size: 12.5px; color: var(--muted); }
+.stack { display: grid; gap: clamp(32px, 4vw, 48px); }
+@media (max-width: 760px) {
+  .hero, .two, .cols { grid-template-columns: minmax(0, 1fr); }
+  .model { grid-template-columns: minmax(0, 1fr); }
+  .links { justify-content: flex-start; }
+  .chart { --name: 92px; } .bar-row { font-size: 12.5px; }
+  .axis span.opt { display: none; }
+}
+</style>
+</head>
+<body>
+<header><a class="brand" href="index.html">A4G Labs</a><nav aria-label="Pages"><a href="models.html" aria-current=page>Models</a><a href="publications.html">Publications</a><a href="members.html">Members</a><a href="lectures.html">Lectures</a></nav></header>
+<main class="wrap"><section><h1>Models</h1></section><section class="chart" aria-label="Lead time of each model, log scale"><div class="bar-row f-weather"><a href="#sonny">Sonny</a><div class="bar-track"><a class="bar" href="#sonny" title="Sonny: 6 h to 10 days" aria-label="Sonny: 6 h to 10 days" style="left:0.00%;width:25.99%"></a></div></div><div class="bar-row f-weather"><a href="#sonny-ens">Sonny-ENS</a><div class="bar-track"><a class="bar" href="#sonny-ens" title="Sonny-ENS: 12 h to 10 days" aria-label="Sonny-ENS: 12 h to 10 days" style="left:4.88%;width:21.10%"></a></div></div><div class="bar-row f-hazard"><a href="#knou-flood">KNOU-Flood</a><div class="bar-track"><a class="bar" href="#knou-flood" title="KNOU-Flood: 1 to 10 days" aria-label="KNOU-Flood: 1 to 10 days" style="left:9.77%;width:16.22%"></a></div></div><div class="bar-row f-hazard"><a href="#pyree">Pyree</a><div class="bar-track"><a class="bar" href="#pyree" title="Pyree: 8 days to 4 months" aria-label="Pyree: 8 days to 4 months" style="left:24.42%;width:19.53%"></a></div></div><div class="bar-row f-weather"><a href="#knou-s2s">KNOU-S2S</a><div class="bar-track"><a class="bar" href="#knou-s2s" title="KNOU-S2S: weeks 3 to 6" aria-label="KNOU-S2S: weeks 3 to 6" style="left:28.84%;width:7.25%"></a></div></div><div class="bar-row f-weather"><a href="#rescene">Rescene</a><div class="bar-track"><a class="bar" href="#rescene" title="Rescene: years to a century" aria-label="Rescene: years to a century" style="left:51.33%;width:32.45%"></a></div></div><div class="bar-row f-weather"><a href="#rescene-esm">Rescene-ESM</a><div class="bar-track"><a class="bar" href="#rescene-esm" title="Rescene-ESM: years to a millennium" aria-label="Rescene-ESM: years to a millennium" style="left:51.33%;width:48.67%"></a></div></div><div class="grid-lines"><i style="left:9.77%"></i><i style="left:33.73%"></i><i style="left:51.33%"></i><i style="left:67.56%"></i><i style="left:83.78%"></i><i style="left:100.00%"></i></div><div class="axis"><span style="left:9.77%">1 day</span><span class=opt style="left:33.73%">1 month</span><span style="left:51.33%">1 year</span><span class=opt style="left:67.56%">10 years</span><span class=opt style="left:83.78%">100 years</span><span style="left:100.00%">1,000 years</span></div></section><div class="groups"><section><h2>Weather and climate</h2><article class="model" id="sonny"><div><h3>Sonny</h3><span class="what">Compute-light global weather model</span></div><div><span class="big">5.5 days</span><span class="cap">to train on one A40 GPU</span></div><div class="links"><a href="https://arxiv.org/abs/2603.21284" target="_blank" rel="noopener">Paper</a><a href="https://github.com/jmj2316/Sonny" target="_blank" rel="noopener">Code</a><a href="https://huggingface.co/Francismj/sonny" target="_blank" rel="noopener">Weights</a></div></article><article class="model" id="sonny-ens"><div><h3>Sonny-ENS</h3><span class="what">Probabilistic ensemble forecasts</span></div><div><span class="big">20 of 20</span><span class="cap">scores with lower CRPS than the IFS ensemble (2020, 18 members)</span></div><div class="links"></div></article><article class="model" id="knou-s2s"><div><h3>KNOU-S2S</h3><span class="what">Subseasonal-to-seasonal prediction</span></div><div><span class="big">48 of 48</span><span class="cap">RMSE and ACC comparisons beating the IFS ensemble mean, weeks 3 to 6</span></div><div class="links"></div></article><article class="model" id="rescene"><div><h3>Rescene</h3><span class="what">Climate emulator around a frozen backbone</span></div><div><span class="big">0.4 M</span><span class="cap">parameters around the backbone</span></div><div class="links"><a href="https://arxiv.org/abs/2608.09971" target="_blank" rel="noopener">Paper</a><a href="https://github.com/jmj2316/rescene-dual-clock" target="_blank" rel="noopener">Code</a></div></article><article class="model" id="rescene-esm"><div><h3>Rescene-ESM</h3><span class="what">Earth system model around a frozen AI weather model</span></div><div><span class="big">1,000 yr/day</span><span class="cap">simulated on one GPU</span></div><div class="links"><a href="rescene_esm.html">Run it</a></div></article></section><section><h2>Hazards</h2><article class="model" id="pyree"><div><h3>Pyree</h3><span class="what">Global wildfire forecasts at 0.25°</span></div><div><span class="big">0.724 to 0.642</span><span class="cap">AUPRC from 8- to 128-day lead (TeleViT 0.624 to 0.607)</span></div><div class="links"><a href="https://github.com/jmj2316/pyree" target="_blank" rel="noopener">Code</a></div></article><article class="model" id="knou-flood"><div><h3>KNOU-Flood</h3><span class="what">Probabilistic streamflow forecasts</span></div><div><span class="big">0.655 / 0.550 / 0.481</span><span class="cap">median KGE′ at 1, 5, 10 days (AIFL recipe 0.618 / 0.459 / 0.340)</span></div><div class="links"><a href="https://github.com/jmj2316/KNOU-Flood" target="_blank" rel="noopener">Code</a></div></article></section><section><h2>Resolution and insight</h2><article class="model" id="orolift"><div><h3>OroLIFT</h3><span class="what">Downscaling from 5.625° to 1.5°</span></div><div><span class="big">1.83 M</span><span class="cap">parameters, matching the coarse input to about 1e-7</span></div><div class="links"><a href="orolift.html">Demo</a><a href="https://github.com/jmj2316/orolift" target="_blank" rel="noopener">Code</a></div></article><article class="model" id="kan-sae"><div><h3>KAN-SAE</h3><span class="what">Interpretable features inside Sonny</span></div><div><span class="cap">Feature atlas, case studies and causal steering</span></div><div class="links"><a href="https://arxiv.org/abs/2605.17493" target="_blank" rel="noopener">Paper</a></div></article><article class="model" id="kaflow"><div><h3>KAFlow</h3><span class="what">Kolmogorov-Arnold flows for operator learning</span></div><div><span class="big">3.4 to 11×</span><span class="cap">lower out-of-distribution loss than KANO on synthetic benchmarks</span></div><div class="links"><a href="https://arxiv.org/abs/2610.13028" target="_blank" rel="noopener">Paper</a></div></article></section></div></main>
+</body>
+</html>
