@@ -25,7 +25,8 @@ html { background: var(--abyss); scroll-behavior: smooth; }
 body { margin: 0; background: var(--abyss); color: var(--fg); font: 400 16px/1.55 var(--body); overflow-x: hidden; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 canvas.bg { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
-#stars { z-index: 0; } #warp { z-index: 0; } #gl { z-index: 1; }
+#stars { z-index: 0; } #warp { z-index: 0; } #gl, #soft { z-index: 1; }
+canvas.bg[hidden] { display: none; }
 main { position: relative; z-index: 2; }
 h1, h2 { font-family: var(--display); font-weight: 900; letter-spacing: -.01em; text-wrap: balance; margin: 0; }
 p { margin: 0; }
@@ -112,7 +113,8 @@ a { color: var(--copper); }
 .facts span { color: var(--muted); font-size: 13px; line-height: 1.35; display: block; }
 #aboutBox dl { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr); gap: 10px 20px; margin: 0; font-size: 14.5px; line-height: 1.5; }
 #aboutBox dt { color: var(--copper); font: 500 13px/1.4 var(--mono); } #aboutBox dd { margin: 0; }
-#nogl { display: none; position: fixed; top: 12px; left: 12px; right: 12px; z-index: 5; background: var(--deep); border: 1px solid var(--copper); padding: 10px 12px; font-size: 14px; }
+#nogl { display: none; position: fixed; top: 12px; left: 12px; right: 60px; z-index: 5; background: var(--deep); border: 1px solid var(--copper); padding: 10px 12px; font-size: 14px; transition: opacity 1.2s; }
+#nogl.gone { opacity: 0; pointer-events: none; }
 
 /* narrow screens: numbers above the planet, the bar below */
 @media (max-width: 900px) {
@@ -139,7 +141,8 @@ a { color: var(--copper); }
 <canvas id="stars" class="bg" aria-hidden="true"></canvas>
 <canvas id="warp" class="bg" aria-hidden="true"></canvas>
 <canvas id="gl" class="bg" aria-label="Globe of Rescene-ESM output"></canvas>
-<div id="nogl">This page draws the planet with WebGL 2, which this browser did not start. The text and numbers still read correctly.</div>
+<canvas id="soft" class="bg" aria-label="Globe of Rescene-ESM output" hidden></canvas>
+<div id="nogl">Graphics acceleration is off in this browser, so the planet is drawn in software at lower resolution.</div>
 
 <div id="tags" aria-hidden="true"></div>
 <button id="about" class="ico" type="button" aria-label="About this page">i</button>
@@ -665,6 +668,7 @@ function recordHov() {
   }
 }
 function uploadWave() {
+  if (!gl) return;
   const { oc, rg, tx, ty } = WD;
   for (let p = 0; p < oc.h.length; p++) { rg[2 * p] = oc.h[p]; rg[2 * p + 1] = Math.hypot(tx[p], ty[p]) / .1; }
   gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, WD.tex);
@@ -803,7 +807,7 @@ const ENSO = { tau: [], n: 0, frame: 0, playing: !REDUCED };
 /* ---- a thousand years ---- */
 const MIL = { data: null, n34: null, year: 0, rate: 20, playing: false, played: false, tex: null, loaded: [-1, -1], off: null, offW: 0, offH: 0, warp: [], warpOn: false };
 function milLayer(l, f) {
-  if (MIL.loaded[l] === f) return;
+  if (!gl || MIL.loaded[l] === f) return;
   MIL.loaded[l] = f;
   const a = META.mil.atlas, n = a.w * a.h;
   gl.activeTexture(gl.TEXTURE8); gl.bindTexture(gl.TEXTURE_2D_ARRAY, MIL.tex);
@@ -881,8 +885,10 @@ const S = { W: 0, H: 0, dpr: 1, dprCap: Math.min(devicePixelRatio || 1, 2), yaw:
 const yrS = $("yearS");
 function resize() {
   S.W = innerWidth; S.H = innerHeight; S.dpr = S.dprCap;
-  canvas.width = Math.round(S.W * S.dpr); canvas.height = Math.round(S.H * S.dpr);
-  gl.viewport(0, 0, canvas.width, canvas.height);
+  if (gl) {
+    canvas.width = Math.round(S.W * S.dpr); canvas.height = Math.round(S.H * S.dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  } else if (SW.cv) { SW.cv.width = Math.round(S.W * S.dpr); SW.cv.height = Math.round(S.H * S.dpr); }
   drawStars(); ticks();
 }
 function drawStars() {
@@ -925,7 +931,7 @@ function rotMat(yaw, pitch) {
 const shortest = (from, to) => { let d = (to - from) % 360; if (d > 180) d -= 360; if (d < -180) d += 360; return from + d; };
 
 function startRender(R) {
-  const { globe, line, halo, nIdx, vaoG, vaoL, vaoH, lineVBO, trail, fade, vaoT, trailVBO, vaoK, TR } = R;
+  const { globe, line, halo, nIdx, vaoG, vaoL, vaoH, lineVBO, trail, fade, vaoT, trailVBO, vaoK, TR } = R || {};
   const D = 12;
   let last = performance.now(), slowFrames = 0, nFrames = 0;
   const Pactive = { wave: false };
@@ -1027,7 +1033,8 @@ function startRender(R) {
 
     /* streaks: painted in longitude and latitude, fading, then laid over the planet */
     const heroWind = toF < .95 && morph < .7 && !REDUCED;
-    if (heroWind) {
+    if (heroWind && !gl) { updateTrails(dt); swTrails(dt); }
+    else if (heroWind) {
       updateTrails(dt);
       const next = 1 - TR.cur;
       gl.bindFramebuffer(gl.FRAMEBUFFER, TR.fbo[next]); gl.viewport(0, 0, TR.w, TR.h);
@@ -1046,13 +1053,15 @@ function startRender(R) {
       gl.activeTexture(gl.TEXTURE10); gl.bindTexture(gl.TEXTURE_2D, TR.tex[next]);
       TR.cur = next;
     }
-    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (gl) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); }
     const dp = S.dpr;
     const showGlobe = rC.top > 0;
     const waveW = 1 - paneE, ensoW = paneE, futW = toF * (1 - toM), heroW = 1 - toF;
     const split = S.split === null ? S.W / 2 + ox : S.split;
     $("stars").style.opacity = 1 - morph * .9;
-    if (showGlobe) {
+    if (!gl) swFrame({ showGlobe, yaw, pitch, R3, ox, oy, Rpx, D, fc, u, morph, split, rb, lw, le, toT, toM, tropicsOn, waveLive, big,
+      hero: heroW * (1 - morph), futW, milW: MIL.data ? toM : 0, waveW: waveW * (tropicsOn ? 1 : 0), ensoW: ensoW * (tropicsOn ? 1 : 0) });
+    else if (showGlobe) {
       /* halo */
       const hA = 1 - morph;
       const warm = MIL.data ? sat(MIL.state[Math.min(Math.floor(MIL.year), 999)] / 3) * toM : 0;
@@ -1277,6 +1286,326 @@ function bindUI() {
   legend($("legM"), "−2", 0, "+2", "K");
 }
 
+/* ---- the planet on the CPU, for browsers without WebGL ----
+   The same fields, colors and camera as the shader above, at lower resolution: the globe is ray-cast into a small image
+   and scaled up, the tropical band is drawn flat, and the two cross-fade where the WebGL globe unrolls. */
+const SW = { cv: null, x: null, d: null, B: 320, ms: 16, bandMax: 150000, bms: 10, TW: 1024, TH: 512, tr: null,
+  off: null, offX: null, img: null, g: null, band: null, bandX: null, bandImg: null, bg: null, sm: new Float32Array(NYB * NX) };
+const sstep = (a, b, v) => { const t = sat((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+const LV = (() => { const n = Math.hypot(.55, .42, .72); return [-.55 / n, .42 / n, .72 / n]; })();
+const HV = (() => { const z = LV[2] + 1, n = Math.hypot(LV[0], LV[1], z); return [LV[0] / n, LV[1] / n, z / n]; })();
+const BLI = new Int32Array(4), BLW = new Float64Array(4);
+function blSet(W, H, x, y) {                                     // bilinear taps for texel coordinates (x, y): centers on integers, wrap in x, clamp in y
+  x -= W * Math.floor(x / W); y = y < 0 ? 0 : y > H - 1 ? H - 1 : y;
+  const i0 = Math.min(x | 0, W - 1), j0 = Math.min(y | 0, H - 2), a = x - i0, b = y - j0, i1 = i0 + 1 >= W ? 0 : i0 + 1, r = j0 * W;
+  BLI[0] = r + i0; BLI[1] = r + i1; BLI[2] = r + W + i0; BLI[3] = r + W + i1;
+  BLW[0] = (1 - a) * (1 - b); BLW[1] = a * (1 - b); BLW[2] = (1 - a) * b; BLW[3] = a * b;
+}
+const tap = (A, off, st) => A[off + st * BLI[0]] * BLW[0] + A[off + st * BLI[1]] * BLW[1] + A[off + st * BLI[2]] * BLW[2] + A[off + st * BLI[3]] * BLW[3];
+function t4(A, off, st, W, i0, i1, a, j0, b) {                    // the same with taps given by column and row
+  const r0 = j0 * W, r1 = r0 + W;
+  return (A[off + st * (r0 + i0)] * (1 - a) + A[off + st * (r0 + i1)] * a) * (1 - b) + (A[off + st * (r1 + i0)] * (1 - a) + A[off + st * (r1 + i1)] * a) * b;
+}
+function contourAt(v, step, w, fw) {                             // the shader's contour(), with fwidth from neighboring pixels
+  const x = v / step, d = Math.abs(x - .5 - Math.floor(x - .5) - .5) / Math.max(fw / step, 1e-4);
+  return 1 - sstep(0, w, d);
+}
+const RC = [0, 0, 0];
+function ramp3(v) {
+  const r = v >= 0 ? RAMP_P : RAMP_N, t = sat(Math.abs(v)) * 4, i = Math.min(t | 0, 3), f = t - i, a = r[i], b = r[i + 1];
+  RC[0] = a[0] + (b[0] - a[0]) * f; RC[1] = a[1] + (b[1] - a[1]) * f; RC[2] = a[2] + (b[2] - a[2]) * f;
+  return RC;
+}
+const TRC = [[.30, .55, .80], [.82, .92, 1], [1, .72, .34], [1, .30, .16]];
+const POW26 = new Float32Array(1025), POW23 = new Float32Array(1025);   // pop^2.6 and pop^2.3, looked up
+for (let k = 0; k <= 1024; k++) { POW26[k] = Math.pow(k / 1024, 2.6); POW23[k] = Math.pow(k / 1024, 2.3); }
+function swInit(d) {
+  SW.d = d;
+  canvas.hidden = true; SW.cv = $("soft"); SW.cv.hidden = false; SW.x = SW.cv.getContext("2d");
+  SW.tr = new Float32Array(SW.TW * SW.TH * 3);
+  SW.off = document.createElement("canvas"); SW.offX = SW.off.getContext("2d");
+  SW.band = document.createElement("canvas"); SW.bandX = SW.band.getContext("2d");
+}
+function swTrails(dt) {                                          // the streak buffer in longitude and latitude, fading as in FS_FADE
+  const T = SW.tr, W = SW.TW, H = SW.TH, f = Math.exp(-dt / .75), sub = 1.2 / 255, K = .5;
+  for (let i = 0; i < T.length; i++) { const v = Math.min(T[i], 1) * f - sub; T[i] = v > 0 ? v : 0; }
+  for (let s = 0; s < N_W; s++) {
+    const o = s * 8, a0 = trailBuf[o + 2], a1 = trailBuf[o + 6];
+    if (a0 < .004 && a1 < .004) continue;
+    const v = trailBuf[o + 3], seg = v < .35 ? 0 : v < .7 ? 1 : 2, t0 = seg === 0 ? v / .35 : seg === 1 ? (v - .35) / .35 : (v - .7) / .3;
+    const A = TRC[seg], Bc = TRC[seg + 1], cr = mix(A[0], Bc[0], t0), cg = mix(A[1], Bc[1], t0), cb = mix(A[2], Bc[2], t0);
+    const x0 = (trailBuf[o] - LON_C + 180) / 360 * W, y0 = (trailBuf[o + 1] + 90) / 180 * H;
+    const x1 = (trailBuf[o + 4] - LON_C + 180) / 360 * W, y1 = (trailBuf[o + 5] + 90) / 180 * H;
+    const n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+    for (let k = 0; k < n; k++) {
+      const t = k / n, yi = Math.round(y0 + (y1 - y0) * t);
+      if (yi < 0 || yi >= H) continue;
+      const xi = ((Math.round(x0 + (x1 - x0) * t) % W) + W) % W, p = 3 * (yi * W + xi), al = (a0 + (a1 - a0) * t) * K;
+      T[p] += cr * al; T[p + 1] += cg * al; T[p + 2] += cb * al;
+    }
+  }
+}
+function swGlobe(P) {
+  const t0 = performance.now(), d = SW.d, Rp = P.Rpx, sc = 2 * Rp / Math.max(96, Math.min(Math.round(2 * Rp * S.dpr), Math.round(SW.B)));
+  const cx = P.ox * P.u, cy = -P.oy * P.u, R = P.R3, D = P.D, fc = P.fc, c2 = cx * cx + cy * cy + D * D - R * R;
+  /* the silhouette is the cone from the eye that grazes the sphere; its box on screen bounds the image */
+  const Lc = Math.sqrt(cx * cx + cy * cy + D * D), ax = cx / Lc, ay = cy / Lc, az = -D / Lc, sa = R / Lc, ca = Math.sqrt(1 - sa * sa), alpha = Math.asin(sa);
+  const en = Math.sqrt(ax * ax + ay * ay), e1x = en > 1e-9 ? -ay / en : 1, e1y = en > 1e-9 ? ax / en : 0;
+  const e2x = -az * e1y, e2y = az * e1x, e2z = ax * e1y - ay * e1x;
+  let X0 = Infinity, X1 = -Infinity, Y0 = Infinity, Y1 = -Infinity;
+  for (let k = 0; k < 64; k++) {
+    const f = k / 64 * 2 * Math.PI, c = Math.cos(f) * sa, s = Math.sin(f) * sa, dz = az * ca + e2z * s;
+    const X = (ax * ca + e1x * c + e2x * s) / -dz * fc, Y = (ay * ca + e1y * c + e2y * s) / -dz * fc;
+    if (X < X0) X0 = X; if (X > X1) X1 = X; if (Y < Y0) Y0 = Y; if (Y > Y1) Y1 = Y;
+  }
+  X0 -= 2 * sc; Y0 -= 2 * sc; X1 += 2 * sc; Y1 += 2 * sc;
+  const cIn = Math.cos(Math.max(alpha - 2 * sc / fc, 0)), cOut = Math.cos(alpha + 2 * sc / fc);   // surely inside, surely outside
+  const BW = Math.ceil((X1 - X0) / sc), BH = Math.ceil((Y1 - Y0) / sc);
+  if (!SW.g || SW.g.C < Math.max(BW, BH)) {
+    const C = Math.ceil(Math.max(BW, BH) * 1.15 / 32) * 32, f = () => new Float32Array(C * C), i = () => new Int32Array(C * C);
+    SW.off.width = SW.off.height = C; SW.img = SW.offX.createImageData(C, C);
+    SW.g = { C, lon: f(), lat: f(), nx: f(), ny: f(), nz: f(), sd: f(), pr: f(), cov: f(), gi: i(), gj: i(), ga: f(), gb: f() };
+  }
+  const G = SW.g, C = G.C, px = SW.img.data, m = rotMat(P.yaw, P.pitch), coastK = Math.min(1, 2.2 / (sc * S.dpr));
+  const hero = P.hero, futW = P.futW, milW = P.milW, nS = 240 * 120, nM = 120 * 60, TW = SW.TW, TH = SW.TH;
+  const sf0 = Math.floor(ST.t), sf1 = Math.min(sf0 + 1, ST.n - 1), sT = ST.t - sf0, stA = sat(Math.min(ST.t, ST.n - 1 - ST.t) / 1.5);
+  const fy0 = sat((S.year - 2022) / 78) * 39, fi0 = Math.min(Math.floor(fy0), 38), fT = fy0 - fi0;
+  const my0 = Math.min(Math.floor(MIL.year), 999), my1 = Math.min(my0 + 1, 999), mT = MIL.year - my0;
+  const grid = (q) => {                                          // the taps on the 240 x 120 grid, kept from pass 1
+    const a = G.ga[q], b = G.gb[q];
+    BLI[0] = G.gi[q]; BLI[1] = G.gj[q]; BLI[2] = BLI[0] + 240; BLI[3] = BLI[1] + 240;
+    BLW[0] = (1 - a) * (1 - b); BLW[1] = a * (1 - b); BLW[2] = (1 - a) * b; BLW[3] = a * b;
+  };
+  /* pass 1: where each pixel lands on the sphere, and the fields whose derivatives the colors need */
+  for (let by = 0; by < BH; by++) {
+    const dy = (Y1 - (by + .5) * sc) / fc;
+    for (let bx = 0, q = by * C; bx < BW; bx++, q++) {
+      const dx = (X0 + (bx + .5) * sc) / fc, dd = dx * dx + dy * dy + 1;
+      const cosT = (dx * ax + dy * ay - az) / Math.sqrt(dd);
+      const cov = cosT > cIn ? 1 : cosT < cOut ? 0 : sat((alpha - Math.acos(Math.min(1, cosT))) * fc * dd / sc + .5);
+      G.cov[q] = cov;
+      if (cov <= 0) continue;
+      const b = -dx * cx - dy * cy - D, t = (-b - Math.sqrt(Math.max(b * b - dd * c2, 0))) / dd;
+      let nx = (t * dx - cx) / R, ny = (t * dy - cy) / R, nz = (D - t) / R;
+      const nn = Math.sqrt(nx * nx + ny * ny + nz * nz); nx /= nn; ny /= nn; nz /= nn;
+      G.nx[q] = nx; G.ny[q] = ny; G.nz[q] = nz;
+      const wx = m[0] * nx + m[1] * ny + m[2] * nz, wy = m[3] * nx + m[4] * ny + m[5] * nz, wz = m[6] * nx + m[7] * ny + m[8] * nz;
+      const lat = Math.asin(wy > 1 ? 1 : wy < -1 ? -1 : wy) * 57.29578, lon = Math.atan2(wx, wz) * 57.29578;
+      G.lat[q] = lat; G.lon[q] = lon;
+      blSet(2048, 1024, (lon + 180) / 360 * 2048 - .5, (lat + 90) / 180 * 1024 - .5);
+      G.sd[q] = (tap(d.coast, 0, 1) / 255 - .5) * 4;
+      blSet(240, 120, lon / 1.5, (lat + 88.5) / 1.5);
+      G.gi[q] = BLI[0]; G.gj[q] = BLI[1]; G.ga[q] = BLW[1] + BLW[3]; G.gb[q] = BLW[2] + BLW[3];
+      if (hero > .002) G.pr[q] = mix(tap(d.st, 2 * sf0 * nS + 1, 2), tap(d.st, 2 * sf1 * nS + 1, 2), sT) / 255 * 105 - 60;
+    }
+  }
+  /* pass 2: the colors of FS_GLOBE */
+  for (let by = 0; by < BH; by++) for (let bx = 0, q = by * C; bx < BW; bx++, q++) {
+    const o = 4 * q, cov = G.cov[q];
+    if (cov <= 0) { px[o + 3] = 0; continue; }
+    const qx = bx + 1 < BW && G.cov[q + 1] > 0 ? q + 1 : bx > 0 && G.cov[q - 1] > 0 ? q - 1 : q;
+    const qy = by + 1 < BH && G.cov[q + C] > 0 ? q + C : by > 0 && G.cov[q - C] > 0 ? q - C : q;
+    const nx = G.nx[q], ny = G.ny[q], nz = G.nz[q], lon = G.lon[q], lat = G.lat[q], sd = G.sd[q];
+    const aw = Math.max(Math.abs(G.sd[qx] - sd) + Math.abs(G.sd[qy] - sd), 1e-3), land = sstep(-aw, aw, sd);
+    blSet(1440, 720, (lon + 180) / 360 * 1440 - .5, (lat + 90) / 180 * 720 - .5);
+    const pop = tap(d.pop, 0, 1) / 255;
+    const diff = sstep(-.12, .75, nx * LV[0] + ny * LV[1] + nz * LV[2]);
+    let r = mix(.012, .05, land), g = mix(.032, .066, land), b = mix(.062, .086, land);
+    if (hero > .002) {
+      grid(q);
+      const T = tap(d.hero, 0, 4) / 255, hg = tap(d.hero, 1, 4) / 255;
+      const rain = mix(tap(d.st, 2 * sf0 * nS, 2), tap(d.st, 2 * sf1 * nS, 2), sT) / 255 * 12;
+      const s1 = sstep(.55, .82, T);
+      let cr = mix(.018, .02, s1), cg = mix(.075, .20, s1), cb = mix(.14, .27, s1), lr, lg, lb;
+      if (T < .56) { const k = sstep(.3, .56, T); lr = mix(.25, .13, k); lg = mix(.30, .21, k); lb = mix(.38, .17, k); }
+      else { const k = sstep(.62, .84, T); lr = mix(.13, .33, k); lg = mix(.21, .25, k); lb = mix(.17, .15, k); }
+      cr = mix(cr, lr, land); cg = mix(cg, lg, land); cb = mix(cb, lb, land);
+      const ice = sstep(.12, .62, hg); cr = mix(cr, .86, ice); cg = mix(cg, .93, ice); cb = mix(cb, .98, ice);
+      const cloud = sstep(1.3, 5.2, rain) * stA, core = sstep(5.2, 10.5, rain) * stA;
+      cr = mix(cr, .74, cloud * .78); cg = mix(cg, .82, cloud * .78); cb = mix(cb, .92, cloud * .78);
+      cr = mix(cr, 1, core * .92); cg = mix(cg, .99, core * .92); cb = mix(cb, .96, core * .92);
+      const sh = .16 + 1.05 * diff; cr *= sh; cg *= sh; cb *= sh;
+      const hv = nx * HV[0] + ny * HV[1] + nz * HV[2], spec = hv > .9 ? Math.pow(hv, 70) * .35 * (1 - land) * (1 - cloud) : 0;
+      cr += .9 * spec; cg += .84 * spec; cb += .7 * spec;
+      const lights = POW26[(pop * 1024) | 0] * land * (1 - diff) * (1 - diff) * 1.5;
+      cr += lights; cg += .72 * lights; cb += .42 * lights;
+      const pv = G.pr[q], iso = contourAt(pv, 8, .9, Math.abs(G.pr[qx] - pv) + Math.abs(G.pr[qy] - pv)) * (1 - land) * .10 * stA * mix(.4, 1, diff);
+      cr += .72 * iso; cg += .82 * iso; cb += .92 * iso;
+      blSet(TW, TH, (lon - LON_C + 180) / 360 * TW - .5, (lat + 90) / 180 * TH - .5);
+      const tk = 1.25 * mix(.35, 1, diff), T3 = SW.tr;
+      cr += Math.min(tap(T3, 0, 3), 1) * tk; cg += Math.min(tap(T3, 1, 3), 1) * tk; cb += Math.min(tap(T3, 2, 3), 1) * tk;
+      r = mix(r, cr, hero); g = mix(g, cg, hero); b = mix(b, cb, hero);
+    }
+    if (futW > .002 || milW > .002) {
+      const br = mix(.016, .07, land), bg = mix(.05, .09, land), bb = mix(.09, .115, land), sh = .68 + .52 * diff;
+      if (futW > .002) {
+        grid(q);
+        const scen = S.W / 2 + X0 + (bx + .5) * sc < P.split ? 0 : 1, l0 = 4 * nS * (40 * scen + fi0), l1 = l0 + 4 * nS;
+        const fr = mix(tap(d.fut, l0, 4), tap(d.fut, l1, 4), fT) / 255, fg = mix(tap(d.fut, l0 + 1, 4), tap(d.fut, l1 + 1, 4), fT) / 255;
+        const fb = mix(tap(d.fut, l0 + 2, 4), tap(d.fut, l1 + 2, 4), fT) / 255;
+        const x = mix(-5, 11, fr) / 4, rc = ramp3(x), k = sstep(.02, .16, Math.abs(x)) * .96, ic = sstep(.15, .7, fg);
+        let cr = mix(mix(br, rc[0], k), .84, ic) * sh, cg = mix(mix(bg, rc[1], k), .93, ic) * sh, cb = mix(mix(bb, rc[2], k), .99, ic) * sh;
+        const e = sstep(.05, 1, fb) * land, w = POW23[(pop * 1024) | 0] * e * e * 2;
+        cr += w; cg += mix(.66, .97, e) * w; cb += mix(.28, .86, e) * w;
+        r = mix(r, cr, futW); g = mix(g, cg, futW); b = mix(b, cb, futW);
+      }
+      if (milW > .002) {
+        blSet(120, 60, (lon + .75) / 3 - .5, (lat + 89.25) / 3 - .5);
+        const v = mix(tap(MIL.data, my0 * nM, 1), tap(MIL.data, my1 * nM, 1), mT) / 255;
+        const x = mix(-3, 3, v) / 2, rc = ramp3(x), k = sstep(.03, .16, Math.abs(x)) * .97, ic = sstep(.2, .8, tap(d.ice, 0, 1) / 255) * .34;
+        const cr = mix(mix(br, rc[0], k), .84, ic) * sh, cg = mix(mix(bg, rc[1], k), .93, ic) * sh, cb = mix(mix(bb, rc[2], k), .99, ic) * sh;
+        r = mix(r, cr, milW); g = mix(g, cg, milW); b = mix(b, cb, milW);
+      }
+    }
+    const rim = Math.pow(1 - (nz > 0 ? nz : 0), 3.2) * .62;
+    r += .20 * rim; g += .47 * rim; b += .72 * rim;
+    const cl = (1 - sstep(0, 1.6 * aw, Math.abs(sd))) * (.26 + .26 * P.morph + .10 * futW + .14 * milW) * coastK;
+    r += .46 * cl; g += .60 * cl; b += .70 * cl;
+    px[o] = r * 255; px[o + 1] = g * 255; px[o + 2] = b * 255; px[o + 3] = cov * 255;
+  }
+  for (let by = 0; by <= BH && by < C; by++) if (BW < C) px[4 * (by * C + BW) + 3] = 0;   // a clear border, so scaling reads nothing stale
+  if (BH < C) for (let bx = 0; bx <= BW && bx < C; bx++) px[4 * (BH * C + bx) + 3] = 0;
+  SW.offX.putImageData(SW.img, 0, 0, 0, 0, Math.min(BW + 1, C), Math.min(BH + 1, C));
+  SW.ms = mix(SW.ms, performance.now() - t0, .1);                // hold the frame rate: fewer pixels when slow, more when there is room
+  if (SW.ms > 24 && SW.B > 180) SW.B *= .95; else if (SW.ms < 12 && SW.B < 900) SW.B *= 1.03;
+  return { x: S.W / 2 + X0, y: S.H / 2 - Y1, BW, BH, sc };
+}
+const boxNino = (lon, lat) => Math.max(Math.abs(lon - 215) - 25, Math.abs(lat) - 5);
+function swBand(P) {                                             // the tropical band, flat, as the unrolled globe shows it
+  const t0 = performance.now(), d = SW.d, rb = P.rb, hpx = rb.height * 65 / 62, top = rb.top - rb.height * 1.5 / 62;
+  const q = Math.min(S.dpr, Math.sqrt(SW.bandMax / (S.W * hpx)));
+  const BW = Math.max(64, Math.round(S.W * q)), BH = Math.max(16, Math.round(hpx * q));
+  if (!SW.bg || SW.bg.W !== BW || SW.bg.H !== BH) {
+    SW.band.width = BW; SW.band.height = BH; SW.bandImg = SW.bandX.createImageData(BW, BH);
+    const f = (n) => new Float32Array(n), i = (n) => new Int32Array(n);
+    SW.bg = { W: BW, H: BH, lon: f(BW), lat: f(BH), sd: f(BW * BH), vw: f(BW * BH), ve: f(BW * BH),
+      gi0: i(BW), gi1: i(BW), ga: f(BW), ci0: i(BW), ci1: i(BW), ca: f(BW), gj: i(BH), gb: f(BH), cj: i(BH), cb: f(BH) };
+  }
+  const G = SW.bg, px = SW.bandImg.data, kx = (P.le - P.lw) / rb.width, waveW = P.waveW, ensoW = P.ensoW, nB = NX * NYB;
+  const e0 = Math.floor(ENSO.frame), e1 = Math.min(e0 + 1, ENSO.n - 1), eT = ENSO.frame - e0, E0 = 4 * e0 * nB, E1 = 4 * e1 * nB;
+  if (waveW > .002) for (let p = 0; p < nB; p++) SW.sm[p] = Math.sqrt(WD.tx[p] * WD.tx[p] + WD.ty[p] * WD.ty[p]) / .1;
+  /* longitude depends only on the column and latitude only on the row, so their taps are set once per frame */
+  for (let bx = 0; bx < BW; bx++) {
+    const lon = P.lw + ((bx + .5) / q - rb.left) * kx;
+    G.lon[bx] = lon;
+    let x = ((lon / 1.5) % NX + NX) % NX, i0 = x | 0;
+    G.gi0[bx] = i0; G.gi1[bx] = i0 + 1 >= NX ? 0 : i0 + 1; G.ga[bx] = x - i0;
+    x = (((lon + 180) / 360 * 2048 - .5) % 2048 + 2048) % 2048; i0 = x | 0;
+    G.ci0[bx] = i0; G.ci1[bx] = i0 + 1 >= 2048 ? 0 : i0 + 1; G.ca[bx] = x - i0;
+  }
+  for (let by = 0; by < BH; by++) {
+    const lat = 31 - (top + (by + .5) / q - rb.top) / rb.height * 62;
+    G.lat[by] = lat;
+    let y = Math.min(Math.max((lat + 30) / 1.5, 0), NYB - 1), j0 = Math.min(y | 0, NYB - 2);
+    G.gj[by] = j0; G.gb[by] = y - j0;
+    y = Math.min(Math.max((lat + 90) / 180 * 1024 - .5, 0), 1023); j0 = Math.min(y | 0, 1022);
+    G.cj[by] = j0; G.cb[by] = y - j0;
+  }
+  for (let by = 0, i = 0; by < BH; by++) {
+    const gj = G.gj[by], gb = G.gb[by], cj = G.cj[by], cb = G.cb[by];
+    for (let bx = 0; bx < BW; bx++, i++) {
+      const gi0 = G.gi0[bx], gi1 = G.gi1[bx], ga = G.ga[bx];
+      G.sd[i] = (t4(d.coast, 0, 1, 2048, G.ci0[bx], G.ci1[bx], G.ca[bx], cj, cb) / 255 - .5) * 4;
+      if (waveW > .002) G.vw[i] = t4(WD.oc.h, 0, 1, NX, gi0, gi1, ga, gj, gb);
+      if (ensoW > .002) G.ve[i] = mix(-60, 60, mix(t4(d.enso, E0 + 1, 4, NX, gi0, gi1, ga, gj, gb), t4(d.enso, E1 + 1, 4, NX, gi0, gi1, ga, gj, gb), eT) / 255);
+    }
+  }
+  for (let by = 0, i = 0; by < BH; by++) {
+    const lat = G.lat[by], al = Math.abs(lat), a = sstep(32.5, 31, al), gj = G.gj[by], gb = G.gb[by], edge = sstep(30.5, 28.5, al);
+    const latN = G.lat[by + 1 < BH ? by + 1 : by - 1];
+    for (let bx = 0; bx < BW; bx++, i++) {
+      const o = 4 * i;
+      if (a <= 0) { px[o + 3] = 0; continue; }
+      const ix = bx + 1 < BW ? i + 1 : i - 1, iy = by + 1 < BH ? i + BW : i - BW;
+      const lon = G.lon[bx], sd = G.sd[i], aw = Math.max(Math.abs(G.sd[ix] - sd) + Math.abs(G.sd[iy] - sd), 1e-3), land = sstep(-aw, aw, sd);
+      const cl = (1 - sstep(0, 1.6 * aw, Math.abs(sd))) * (.26 + .26 * P.morph);
+      let r = mix(.012, .05, land) + .46 * cl, g = mix(.032, .066, land) + .60 * cl, b = mix(.062, .086, land) + .70 * cl;
+      if (al < 31) {
+        const gi0 = G.gi0[bx], gi1 = G.gi1[bx], ga = G.ga[bx];
+        const seaM = sstep(.35, .65, t4(d.sea, 0, 1, NX, gi0, gi1, ga, gj, gb) / 255);
+        if (waveW > .002) {
+          const h = G.vw[i], x = h / WAVE_MAX, rc = ramp3(x), k = sstep(0, .07, Math.abs(x)) * seaM * edge;
+          let cr = mix(r, rc[0], k), cg = mix(g, rc[1], k), cb = mix(b, rc[2], k);
+          const con = contourAt(h, 3, 1.1, Math.abs(G.vw[ix] - h) + Math.abs(G.vw[iy] - h)) * sstep(.05, .2, Math.abs(x)) * .38 * seaM * edge;
+          const st = sstep(0, 1, t4(SW.sm, 0, 1, NX, gi0, gi1, ga, gj, gb)) * .28 * edge;
+          cr += .95 * con + .88 * st; cg += .92 * con + .56 * st; cb += .82 * con + .30 * st;
+          r = mix(r, cr, waveW); g = mix(g, cg, waveW); b = mix(b, cb, waveW);
+        }
+        if (ensoW > .002) {
+          const sst = mix(-4, 4, mix(t4(d.enso, E0, 4, NX, gi0, gi1, ga, gj, gb), t4(d.enso, E1, 4, NX, gi0, gi1, ga, gj, gb), eT) / 255);
+          const x = sst / 3, rc = ramp3(x), k = sstep(.02, .12, Math.abs(x)) * (1 - land) * edge, hh = G.ve[i];
+          let cr = mix(r, rc[0], k), cg = mix(g, rc[1], k), cb = mix(b, rc[2], k);
+          const con = contourAt(hh, 10, 1.05, Math.abs(G.ve[ix] - hh) + Math.abs(G.ve[iy] - hh)) * .5 * sstep(.2, .8, Math.abs(hh)) * seaM * edge;
+          cr += .95 * con; cg += .97 * con; cb += con;
+          const bv = boxNino(lon, lat), bw = Math.max(Math.abs(boxNino(G.lon[bx + 1 < BW ? bx + 1 : bx - 1], lat) - bv) + Math.abs(boxNino(lon, latN) - bv), 1e-3);
+          const kb = (1 - sstep(0, 1.4 * bw, Math.abs(bv))) * .85;
+          cr = mix(cr, 1, kb); cg = mix(cg, 1, kb); cb = mix(cb, 1, kb);
+          r = mix(r, cr, ensoW); g = mix(g, cg, ensoW); b = mix(b, cb, ensoW);
+        }
+      }
+      px[o] = r * 255; px[o + 1] = g * 255; px[o + 2] = b * 255; px[o + 3] = a * 255;
+    }
+  }
+  SW.bandX.putImageData(SW.bandImg, 0, 0);
+  SW.bms = mix(SW.bms, performance.now() - t0, .1);
+  if (SW.bms > 16 && SW.bandMax > 40000) SW.bandMax *= .95; else if (SW.bms < 8 && SW.bandMax < 400000) SW.bandMax *= 1.04;
+  return { top, hpx };
+}
+function swProj(lon, lat, P, m, lift) {                          // screen position of a point on the sphere, and whether it faces us
+  const la = lat * Math.PI / 180, lo = lon * Math.PI / 180, nx = Math.cos(la) * Math.sin(lo), ny = Math.sin(la), nz = Math.cos(la) * Math.cos(lo);
+  const vx = m[0] * nx + m[3] * ny + m[6] * nz, vy = m[1] * nx + m[4] * ny + m[7] * nz, vz = m[2] * nx + m[5] * ny + m[8] * nz;
+  const R = P.R3 * (1 + lift), w = P.D - vz * R;
+  return [S.W / 2 + (vx * R + P.ox * P.u) * P.fc / w, S.H / 2 - (vy * R - P.oy * P.u) * P.fc / w, vz];
+}
+function swFrame(P) {
+  const x = SW.x;
+  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, SW.cv.width, SW.cv.height);
+  if (!P.showGlobe) return;
+  x.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+  const cx = S.W / 2 + P.ox, cy = S.H / 2 + P.oy, Rp = P.Rpx, hA = 1 - P.morph;
+  if (hA > .01) {                                                // halo, as FS_HALO
+    const warm = MIL.data ? sat(MIL.state[Math.min(Math.floor(MIL.year), 999)] / 3) * P.toM : 0;
+    const tint = [mix(.22, .85, warm), mix(.52, .42, warm), mix(.86, .30, warm)].map((v) => Math.round(v * 255)).join(",");
+    const gr = x.createRadialGradient(cx, cy, Rp, cx, cy, 1.3 * Rp);
+    for (let k = 0; k <= 8; k++) { const t = 1 - k / 8; gr.addColorStop(k / 8, `rgba(${tint},${(t * t * t * .62 * hA).toFixed(4)})`); }
+    x.globalCompositeOperation = "lighter"; x.fillStyle = gr; x.fillRect(cx - 1.3 * Rp, cy - 1.3 * Rp, 2.6 * Rp, 2.6 * Rp);
+    x.globalCompositeOperation = "source-over";
+    const gb = swGlobe(P);
+    x.globalAlpha = hA; x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+    x.drawImage(SW.off, 0, 0, gb.BW, gb.BH, gb.x, gb.y, gb.BW * gb.sc, gb.BH * gb.sc); x.globalAlpha = 1;
+  }
+  updateBand(P.tropicsOn && P.morph > .9 ? (P.waveLive ? 1 : 2) : 0, ENSO.frame, P.lw, P.le);
+  if (P.morph > .01 && P.tropicsOn) {
+    const { top, hpx } = swBand(P);
+    x.globalAlpha = P.morph; x.imageSmoothingEnabled = true; x.drawImage(SW.band, 0, top, S.W, hpx); x.globalAlpha = 1;
+    const rb = P.rb, sx = rb.width / (P.le - P.lw), sy = rb.height / 62, paths = [];
+    for (let i = 0; i < N_B; i++) {                              // stress streaks, binned by brightness
+      const o = i * 8, al = lineBuf[o + 2];
+      if (al < .01) continue;
+      const k = 6 * lineBuf[o + 3] + Math.min(5, Math.floor(al * 6));
+      (paths[k] = paths[k] || []).push(rb.left + (lineBuf[o] - P.lw) * sx, rb.top + (31 - lineBuf[o + 1]) * sy, rb.left + (lineBuf[o + 4] - P.lw) * sx, rb.top + (31 - lineBuf[o + 5]) * sy);
+    }
+    x.globalCompositeOperation = "lighter"; x.lineWidth = 1.2; x.lineCap = "round";
+    paths.forEach((p, k) => {
+      if (!p) return;
+      const c = k < 6 ? "255,178,107" : "128,230,255";
+      x.strokeStyle = `rgba(${c},${((k % 6 + .5) / 6 * .55).toFixed(3)})`; x.beginPath();
+      for (let j = 0; j < p.length; j += 4) { x.moveTo(p[j], p[j + 1]); x.lineTo(p[j + 2], p[j + 3]); }
+      x.stroke();
+    });
+    x.globalCompositeOperation = "source-over";
+  }
+  if (S.fw > .05 && P.toT < .2 && P.big) {                       // the followed storm's path so far
+    const m = rotMat(P.yaw, P.pitch), tr = P.big;
+    x.globalCompositeOperation = "lighter"; x.strokeStyle = `rgba(255,158,77,${(.95 * S.fw).toFixed(3)})`; x.lineWidth = 1.5; x.beginPath();
+    for (let i = 0; i < tr.p.length - 1 && tr.f0 + i < ST.t; i++) {
+      const a = swProj(tr.lon[i], tr.lat[i], P, m, .004), b = swProj(tr.lon[i + 1], tr.lat[i + 1], P, m, .004);
+      if (a[2] > .05 && b[2] > .05) { x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); }
+    }
+    x.stroke(); x.globalCompositeOperation = "source-over";
+  }
+}
+
 /* ---- start ---- */
 async function main() {
   const E = META.enso;
@@ -1286,18 +1615,23 @@ async function main() {
   $("ensoNote").textContent = `Year ${Math.round(E.model_year)} of the 100-year control at fixed CO₂, with no observed forcing. Color is SST anomaly, white contours are thermocline anomaly every 10 m, and streaks are zonal stress anomaly (copper westerly, blue easterly). It is number ${E.rank} among ${E.n_events} El Niño peaks in the run, ranked by strength, and reaches ${E.peak.toFixed(1)} K.`;
   $("scrubE").max = E.n34.length - 1;
   readouts();
-  if (!gl) { $("nogl").style.display = "block"; return; }
-  gl.getExtension("OES_texture_float_linear");
+  if (!gl) { const n = $("nogl"); n.style.display = "block"; setTimeout(() => n.classList.add("gone"), 9000); }
+  else gl.getExtension("OES_texture_float_linear");
   const sources = {};
   for (const k of ["coast", "pop", "sea", "hero", "st_u", "st_v", "st_r", "st_p", "fut_vl", "fut_h", "enso"]) sources[k] = await decode(k);
 
-  /* textures */
-  const coast = sources.coast, pop = sources.pop;
-  tex2D(0, coast.width, coast.height, gl.R8, gl.RED, gl.UNSIGNED_BYTE, channel0(coast), true);
-  tex2D(1, pop.width, pop.height, gl.R8, gl.RED, gl.UNSIGNED_BYTE, channel0(pop), true);
-  const seaB = channel0(sources.sea);
-  tex2D(6, NX, NYB, gl.R8, gl.RED, gl.UNSIGNED_BYTE, seaB, false);
-  texArray(2, 240, 120, 1, layers(sources.hero, META.hero.atlas));
+  /* textures, or the CPU copies the software planet reads */
+  const coast = sources.coast, pop = sources.pop, coastB = channel0(coast), popB = channel0(pop);
+  if (gl) {
+    tex2D(0, coast.width, coast.height, gl.R8, gl.RED, gl.UNSIGNED_BYTE, coastB, true);
+    tex2D(1, pop.width, pop.height, gl.R8, gl.RED, gl.UNSIGNED_BYTE, popB, true);
+  }
+  const seaB = channel0(sources.sea), heroL = layers(sources.hero, META.hero.atlas);
+  if (gl) {
+    tex2D(6, NX, NYB, gl.R8, gl.RED, gl.UNSIGNED_BYTE, seaB, false);
+    texArray(2, 240, 120, 1, heroL);
+  }
+  let stRG = null;
   { const M = META.storm, a = M.atlas, n = a.w * a.h;
     const take = (img) => { const d = new Uint8Array(a.n * n);
       for (let k = 0; k < a.n; k++) { const x0 = (k % a.cols) * a.w, y0 = Math.floor(k / a.cols) * a.h;
@@ -1306,16 +1640,19 @@ async function main() {
     ST.n = a.n; ST.u = take(sources.st_u); ST.v = take(sources.st_v); ST.lo = M.wind[0]; ST.span = M.wind[1] - M.wind[0];
     const rr = take(sources.st_r), pp = take(sources.st_p), rg = new Uint8Array(2 * a.n * n);
     for (let p = 0; p < a.n * n; p++) { rg[2 * p] = rr[p]; rg[2 * p + 1] = pp[p]; }
-    texArray(7, a.w, a.h, a.n, rg, gl.RG8);
+    stRG = rg;
+    if (gl) texArray(7, a.w, a.h, a.n, rg, gl.RG8);
     ST.tracks = M.tracks; ST.t = M.start_frame; ST.rateNow = ST.rate;
     const big = trackAt(M.tracks[0], M.start_frame); if (big) { S.yaw = big.lon + 30; S.stormLat = big.lat; }
   }
   const fa = META.future.atlas_vl, fb = META.future.atlas_h, fd = new Uint8Array(4 * 240 * 120 * 80);
   fd.set(layers(sources.fut_vl, fa), 0); fd.set(layers(sources.fut_h, fb), 4 * 240 * 120 * 40);
-  texArray(3, 240, 120, 80, fd);
   const ea = E.atlas, ed = layers(sources.enso, ea);
-  texArray(4, 240, 41, ea.n, ed);
-  WD.tex = tex2D(5, NX, NYB, gl.RG16F, gl.RG, gl.FLOAT, new Float32Array(2 * NX * NYB), false);
+  if (gl) {
+    texArray(3, 240, 120, 80, fd);
+    texArray(4, 240, 41, ea.n, ed);
+    WD.tex = tex2D(5, NX, NYB, gl.RG16F, gl.RG, gl.FLOAT, new Float32Array(2 * NX * NYB), false);
+  }
 
   /* JS copies */
   ENSO.n = ea.n;
@@ -1335,9 +1672,9 @@ async function main() {
   uploadWave();
 
   /* a thousand years: small live texture, all years in memory */
-  MIL.tex = texArray(8, META.mil.atlas.w, META.mil.atlas.h, 2, null, gl.R8);
-  const icePx = await decode("mil_ice");
-  tex2D(9, META.mil.atlas.w, META.mil.atlas.h, gl.R8, gl.RED, gl.UNSIGNED_BYTE, channel0(icePx), false);
+  if (gl) MIL.tex = texArray(8, META.mil.atlas.w, META.mil.atlas.h, 2, null, gl.R8);
+  const icePx = await decode("mil_ice"), iceB = channel0(icePx);
+  if (gl) tex2D(9, META.mil.atlas.w, META.mil.atlas.h, gl.R8, gl.RED, gl.UNSIGNED_BYTE, iceB, false);
   MIL.n34 = Int8Array.from(atob(META.mil.n34), (c) => c.charCodeAt(0));
   MIL.state = milStates();
   for (let i = 0; i < 240; i++) MIL.warp.push({ a: rnd() * 6.2832, r: rnd(), v: .25 + rnd() * .75 });
@@ -1351,8 +1688,17 @@ async function main() {
     }
     MIL.data = d;
     milLayer(0, 0); milLayer(1, 1);
-    gl.activeTexture(gl.TEXTURE8);
+    if (gl) gl.activeTexture(gl.TEXTURE8);
   });
+
+  if (!gl) {                                                     // no WebGL: the same scenes from the CPU
+    swInit({ coast: coastB, pop: popB, sea: seaB, hero: heroL, st: stRG, fut: fd, enso: ed, ice: iceB });
+    bindUI();
+    resize();
+    window.__rescene = { S, WD, ENSO, META, MIL, ST, SW };
+    startRender(null);
+    return;
+  }
 
   /* geometry */
   const globe = program(VS_GLOBE, FS_GLOBE), line = program(VS_LINE, FS_LINE), halo = program(VS_HALO, FS_HALO), trail = program(VS_TRAIL, FS_TRAIL), fade = program(VS_HALO, FS_FADE);
@@ -1399,7 +1745,7 @@ async function main() {
   window.__rescene = { S, WD, ENSO, META, MIL, ST };
   startRender({ globe, line, halo, nIdx: idx.length, vaoG, vaoL, vaoH, lineVBO, trail, fade, vaoT, trailVBO, vaoK, TR });
 }
-main().catch((e) => { console.error(e); $("nogl").style.display = "block"; });
+main().catch((e) => { console.error(e); const n = $("nogl"); n.textContent = "This browser could not draw the planet."; n.classList.remove("gone"); n.style.display = "block"; });
 </script>
 
 </body>
