@@ -6,6 +6,7 @@
 <title>A4G Labs</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="AI for Good Lab, Korea National Open University">
+<script>document.documentElement.classList.add("js")</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Merriweather:wght@700;900&display=swap">
@@ -81,10 +82,132 @@ h2 + .plain, h2 + .rows, h2 + ul { margin-top: 10px; }
   .hero, .two, .cols, .mgrid { grid-template-columns: minmax(0, 1fr); }
   .hero { gap: 8px; }
 }
+
+/* ---- 2026-11 refresh: same white page, more depth. Navy -> copper is the one accent gradient. ---- */
+:root { --grad: linear-gradient(90deg, var(--navy), #3a5bd0 55%, var(--copper)); --card: #ffffff; --soft: #f6f7f9;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px rgba(24, 42, 105, .06); --shadow-hi: 0 2px 4px rgba(16, 24, 40, .05), 0 18px 40px rgba(24, 42, 105, .12); }
+body { padding-block-end: 0; }
+.topbar { position: sticky; top: 0; z-index: 20; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  background: rgba(255, 255, 255, .82); -webkit-backdrop-filter: saturate(1.6) blur(14px); backdrop-filter: saturate(1.6) blur(14px); border-bottom: 1px solid var(--line); }
+.topbar::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--grad); }
+.topbar header { padding-block: 18px 14px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand i { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 32% 30%, #fff 0 12%, #6f8bff 30%, var(--navy) 62%, #0b143a 100%);
+  box-shadow: 0 0 0 3px rgba(24, 42, 105, .08); }
+nav a { position: relative; }
+nav a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: 0; height: 1.5px; background: var(--navy); transition: right .25s ease; }
+nav a:hover::after { right: 0; }
+nav a[aria-current] { box-shadow: none; }
+nav a[aria-current]::after { right: 0; }
+.wrap { padding-top: clamp(28px, 4vw, 48px); }
+.js .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s cubic-bezier(.2, .7, .2, 1); }
+.js .reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } nav a::after { transition: none; } }
+.grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* home */
+.hero { position: relative; }
+.hero h1 { letter-spacing: -.02em; }
+.hero .kicker { font: 500 12.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--copper); margin-bottom: 14px; }
+.globe { position: relative; }
+.globe::before { content: ""; position: absolute; inset: 8% 8% 14%; border-radius: 50%; z-index: -1; filter: blur(40px);
+  background: radial-gradient(circle at 40% 40%, rgba(58, 91, 208, .30), rgba(180, 83, 42, .18) 60%, transparent 72%); }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 14px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+.metrics div { padding: 20px 22px; border-left: 1px solid var(--line); }
+.metrics div:first-child { border-left: 0; }
+.metrics b { display: block; font: 900 clamp(30px, 3.6vw, 44px)/1 var(--display); color: var(--navy); font-variant-numeric: tabular-nums; }
+.metrics span { display: block; margin-top: 8px; font-size: 13.5px; color: var(--muted); }
+.feature { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.fcard { position: relative; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--card);
+  text-decoration: none; box-shadow: var(--shadow); transition: transform .3s ease, box-shadow .3s ease; }
+.fcard:hover { transform: translateY(-4px); box-shadow: var(--shadow-hi); color: inherit; }
+.fcard .pic { aspect-ratio: 16 / 8; background: #0b143a center / cover no-repeat; }
+.fcard .pic.light { background-color: #fff; background-size: contain; border-bottom: 1px solid var(--line); }
+.fcard .txt { padding: 18px 20px 20px; display: grid; gap: 6px; }
+.fcard .txt b { font: 700 21px/1.2 var(--display); }
+.fcard .txt span { color: var(--muted); font-size: 14.5px; }
+.fcard .txt em { font: 500 13px/1 var(--mono); font-style: normal; color: var(--navy); margin-top: 6px; }
+.timeline { position: relative; margin-top: 12px; }
+.timeline li { position: relative; padding: 0 0 18px 26px; }
+.timeline li::before { content: ""; position: absolute; left: 5px; top: 8px; bottom: -8px; width: 1.5px; background: var(--line); }
+.timeline li:last-child::before { display: none; }
+.timeline li::after { content: ""; position: absolute; left: 0; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 2px solid var(--navy); }
+.timeline li:first-child::after { background: var(--navy); box-shadow: 0 0 0 4px rgba(24, 42, 105, .12); }
+.timeline .mono { display: block; font-size: 12.5px; color: var(--copper); }
+.tcards { display: grid; gap: 12px; margin-top: 12px; }
+.tcard { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 4px 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
+.tcard i { grid-row: span 2; font: 500 13px/34px var(--mono); font-style: normal; text-align: center; color: #fff; background: var(--grad); border-radius: 9px; width: 34px; height: 34px; }
+.tcard b { font-weight: 600; }
+.tcard span { color: var(--muted); font-size: 14.5px; }
+
+/* models */
+.mgrid { gap: 16px; }
+.model { border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px 18px; background: var(--card); box-shadow: var(--shadow);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; position: relative; overflow: hidden; }
+.model::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent, var(--navy)); }
+.model:hover { transform: translateY(-3px); box-shadow: var(--shadow-hi); border-color: #dfe3ea; }
+.model .stat b { font: 900 22px/1.15 var(--display); color: var(--accent, var(--navy)); display: block; margin: 6px 0 2px; }
+.links a { display: inline-block; text-decoration: none; font-size: 13px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); margin-top: 4px; }
+.links a:hover { border-color: var(--navy); background: #fff; }
+.ghead { display: flex; align-items: baseline; gap: 10px; }
+.ghead small { font: 500 12px/1 var(--mono); color: var(--muted); }
+
+/* publications */
+.pstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pstats div { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--card); box-shadow: var(--shadow); }
+.pstats b { display: block; font: 900 28px/1 var(--display); color: var(--navy); font-variant-numeric: tabular-nums; }
+.pstats span { font-size: 13px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { font: 500 13.5px/1 var(--body); color: var(--muted); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+.chips button b { font-weight: 600; color: var(--ink); margin-left: 4px; }
+.chips button[aria-pressed="true"] { color: #fff; background: var(--navy); border-color: var(--navy); }
+.chips button[aria-pressed="true"] b { color: #fff; }
+.chips button:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.year { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 0 24px; }
+.year > h2 { position: sticky; top: 76px; align-self: start; font: 900 28px/1 var(--display); color: var(--ink); letter-spacing: 0; text-transform: none; margin: 14px 0 0; }
+.year > h2 small { display: block; font: 500 12px/1.4 var(--mono); color: var(--muted); margin-top: 6px; }
+.pub { display: grid; gap: 4px; }
+.pub .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.badge { font: 500 11.5px/1 var(--mono); letter-spacing: .04em; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.badge.Journal { color: var(--navy); background: #edf0fa; }
+.badge.Conference { color: var(--copper); background: #fbefe8; }
+.badge.Preprint { color: #4a5563; background: #eef0f3; }
+.badge.Thesis { color: #2e6b47; background: #e9f4ee; }
+.pub[hidden], .year[hidden] { display: none; }
+footer.site { max-width: 1040px; margin: clamp(56px, 8vw, 96px) auto 0; padding: 22px 0 36px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap;
+  justify-content: space-between; gap: 8px 24px; font-size: 13.5px; color: var(--muted); }
+footer.site nav { gap: 4px 18px; font-size: 13.5px; }
+@media (max-width: 760px) {
+  .metrics, .pstats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metrics div:nth-child(3) { border-left: 0; }
+  .metrics div:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .feature { grid-template-columns: minmax(0, 1fr); }
+  .year { grid-template-columns: minmax(0, 1fr); }
+  .year > h2 { position: static; margin: 0 0 4px; }
+  .topbar header { padding-block: 14px 10px; }
+}
 </style>
 </head>
 <body>
-<header><a class="brand" href="index.html">A4G Labs</a><nav aria-label="Pages"><a href="models.html">Models</a><a href="publications.html">Publications</a><a href="members.html">Members</a><a href="lectures.html">Lectures</a></nav></header>
-<main class="wrap"><section class="hero"><div><h1>A4G Labs</h1><p>AI for Good Lab<br>Korea National Open University</p></div><a class="globe" href="rescene_esm.html"><img src="globe.webp" width="1000" height="1000" alt="Globe of Rescene-ESM weather: rain and 10-m wind over the Atlantic"><span>Run Rescene-ESM →</span></a></section><section class="two"><div><h2>News</h2><ul class="rows"><li><span class="mono">2026.11</span><a href="mjboost.html">MJBoost released on PyPI: interpretable boosting beyond pairwise interactions.</a></li><li><span class="mono">2026.10</span><a href="models.html">A4G Model Atlas launched: nine models for weather, climate and hazards.</a></li><li><span class="mono">2026.10</span><a href="https://arxiv.org/abs/2608.09971" target="_blank" rel="noopener">Rescene accepted at the Tackling Climate Change with Machine Learning workshop, NeurIPS 2026.</a></li><li><span class="mono">2026.07</span><a href="https://doi.org/10.1016/j.icte.2026.07.002" target="_blank" rel="noopener">MambaOutRS published in ICT Express.</a></li></ul></div><div><h2>Research</h2><ul><li class="topic"><b>Weather forecasting</b><span>AI models that learn atmospheric dynamics from reanalysis and observations.</span></li><li class="topic"><b>Kolmogorov-Arnold Networks</b><span>Interpretable networks built from learnable univariate functions.</span></li><li class="topic"><b>Deep learning for science</b><span>Remote sensing, medical data and super-resolution.</span></li></ul></div></section></main>
+<div class="topbar"><header><a class="brand" href="index.html"><i aria-hidden="true"></i>A4G Labs</a><nav aria-label="Pages"><a href="models.html">Models</a><a href="publications.html">Publications</a><a href="members.html">Members</a><a href="lectures.html">Lectures</a></nav></header></div>
+<main class="wrap"><section class="hero"><div><p class="kicker">AI for Good Lab</p><h1>A4G Labs</h1><p>AI models that learn the atmosphere and the climate, and machine learning that stays readable.<br>Korea National Open University</p></div><a class="globe" href="rescene_esm.html"><img src="globe.webp" width="1000" height="1000" alt="Globe of Rescene-ESM weather: rain and 10-m wind over the Atlantic"><span>Run Rescene-ESM →</span></a></section><section class="metrics reveal" aria-label="The lab in numbers"><div><b data-count="11">11</b><span>models</span></div><div><b data-count="50">50</b><span>papers and preprints</span></div><div><b data-count="704">704</b><span>citations on Google Scholar</span></div><div><b data-count="10">10</b><span>h-index</span></div></section><section><h2>Featured</h2><div class="feature" style="margin-top:10px"><a class="fcard reveal" href="rescene_esm.html"><div class="pic" style="background-image:url(globe.webp)" role="img" aria-label="Rescene-ESM"></div><div class="txt"><b>Rescene-ESM</b><span>An Earth system model around a frozen AI weather model, running in your browser.</span><em>Run the explorer →</em></div></a><a class="fcard reveal" href="mjboost.html"><div class="pic light" style="background-image:url(mjboost/overview.webp)" role="img" aria-label="MJBoost"></div><div class="txt"><b>MJBoost</b><span>Interpretable boosting beyond pairwise interactions. pip install mjboost.</span><em>Read the page →</em></div></a></div></section><section class="two reveal"><div><h2>News</h2><ul class="timeline"><li><span class="mono">2026.11</span><a href="mjboost.html">MJBoost released on PyPI: interpretable boosting beyond pairwise interactions.</a></li><li><span class="mono">2026.10</span><a href="models.html">A4G Model Atlas launched: nine models for weather, climate and hazards.</a></li><li><span class="mono">2026.10</span><a href="https://arxiv.org/abs/2608.09971" target="_blank" rel="noopener">Rescene accepted at the Tackling Climate Change with Machine Learning workshop, NeurIPS 2026.</a></li><li><span class="mono">2026.07</span><a href="https://doi.org/10.1016/j.icte.2026.07.002" target="_blank" rel="noopener">MambaOutRS published in ICT Express.</a></li></ul></div><div><h2>Research</h2><ul class="tcards"><li class="tcard"><i>01</i><b>Weather forecasting</b><span>AI models that learn atmospheric dynamics from reanalysis and observations.</span></li><li class="tcard"><i>02</i><b>Kolmogorov-Arnold Networks</b><span>Interpretable networks built from learnable univariate functions.</span></li><li class="tcard"><i>03</i><b>Deep learning for science</b><span>Remote sensing, medical data and super-resolution.</span></li></ul></div></section></main>
+<footer class="site"><span>A4G Labs · AI for Good Lab · Korea National Open University</span><nav aria-label="Elsewhere"><a href="https://scholar.google.com/citations?user=UZAaM7oAAAAJ&amp;hl=en" target="_blank" rel="noopener">Google Scholar</a><a href="https://orcid.org/0000-0001-7589-4078" target="_blank" rel="noopener">ORCID</a><a href="https://github.com/jmj2316" target="_blank" rel="noopener">GitHub</a></nav></footer>
+<script>
+(() => {
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const io = ('IntersectionObserver' in window) ? new IntersectionObserver((es) => es.forEach((en) => {
+    if (!en.isIntersecting) return;
+    const el = en.target; el.classList.add('in'); io.unobserve(el);
+    el.querySelectorAll('[data-count]').forEach((n) => {
+      const end = +n.dataset.count; if (still || !end) { n.textContent = end.toLocaleString('en-US'); return; }
+      const t0 = performance.now(), d = 1100;
+      const step = (t) => { const k = Math.min(1, (t - t0) / d), v = Math.round(end * (1 - Math.pow(1 - k, 3)));
+        n.textContent = v.toLocaleString('en-US'); if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    });
+  }), { rootMargin: '0px 0px -6% 0px' }) : null;
+  document.querySelectorAll('.reveal').forEach((el) => io ? io.observe(el) : el.classList.add('in'));
+})();
+</script>
 </body>
 </html>
