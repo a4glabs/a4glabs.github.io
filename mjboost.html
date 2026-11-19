@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MJBoost · A4G Labs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="AI for Good Lab, Korea National Open University">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Merriweather:wght@700;900&display=swap">
+<style>
+/* Layout: a white page of quiet lists with hairlines, the planet as the only picture. Navy for links and copper for small
+   labels, as on the lab's Google Site. */
+:root {
+  --bg: #ffffff; --ink: #1b1f24; --muted: #5f6872; --line: #e7eaee;
+  --navy: #182a69; --copper: #b4532a;
+  --display: "Merriweather", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 3px; }
+a:hover { color: var(--navy); text-decoration-color: currentColor; }
+a:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+h1, h2, h3, p, ul, ol, dl, dd { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+.wrap { max-width: 1040px; margin-inline: auto; display: grid; gap: clamp(40px, 6vw, 64px); }
+header { max-width: 1040px; margin-inline: auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px; padding-block: 22px clamp(28px, 4vw, 48px); }
+.brand { font: 900 18px/1.2 var(--display); text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 14.5px; }
+nav a { text-decoration: none; color: var(--muted); padding-block: 4px; }
+nav a[aria-current] { color: var(--ink); box-shadow: 0 1.5px 0 var(--navy); }
+h1 { font: 900 clamp(30px, 4vw, 46px)/1.08 var(--display); letter-spacing: -.01em; text-wrap: balance; }
+h2 { font: 500 12px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--copper); margin-bottom: 4px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* home */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; align-items: center; }
+.hero h1 { font-size: clamp(46px, 7vw, 84px); }
+.hero p { color: var(--muted); font-size: clamp(16px, 1.5vw, 19px); margin-top: 14px; }
+.globe { display: grid; justify-items: center; gap: 14px; text-decoration: none; }
+.globe img { display: block; width: min(100%, 520px); height: auto; aspect-ratio: 1; filter: drop-shadow(0 22px 40px rgba(24, 42, 105, .18)); transition: transform .5s ease; }
+.globe:hover img { transform: scale(1.02); }
+.globe span { font: 500 13.5px/1 var(--mono); color: var(--navy); }
+@media (prefers-reduced-motion: reduce) { .globe img { transition: none; } .globe:hover img { transform: none; } }
+.two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px clamp(32px, 6vw, 72px); }
+.rows > li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding-block: 11px; border-top: 1px solid var(--line); }
+.rows .mono { font-size: 13px; line-height: 1.75; color: var(--muted); }
+.topic { padding-block: 11px; border-top: 1px solid var(--line); }
+.topic b { display: block; font-weight: 600; }
+.topic span { color: var(--muted); font-size: 14.5px; }
+
+/* models: a two-column list, one short entry per model */
+.groups { display: grid; gap: 44px; }
+.mgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(32px, 5vw, 64px); margin-top: 10px; }
+.model { display: grid; gap: 4px; align-content: start; padding-block: 16px 20px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+.model h3 { font: 700 19px/1.25 var(--display); }
+.model .what { color: var(--muted); font-size: 14.5px; }
+.model .stat { font-size: 14px; color: var(--muted); margin-top: 6px; }
+.model .stat b { font: 500 15px/1.3 var(--mono); color: var(--ink); margin-right: 8px; font-variant-numeric: tabular-nums; }
+.links { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 14px; margin-top: 6px; }
+.links a { color: var(--navy); }
+
+/* publications, members, lectures */
+.pub { padding-block: 14px; border-top: 1px solid var(--line); }
+.pub a { font-weight: 500; }
+.pub p { color: var(--muted); font-size: 14.5px; margin-top: 3px; }
+.who h1 small { font: 400 .55em/1 var(--body); color: var(--muted); margin-left: 8px; letter-spacing: 0; }
+.who > p { color: var(--muted); margin-top: 10px; }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px clamp(24px, 4vw, 48px); }
+.plain > li { padding-block: 9px; border-top: 1px solid var(--line); font-size: 15px; }
+.plain .mono { display: block; font-size: 12.5px; color: var(--muted); }
+h2 + .plain, h2 + .rows, h2 + ul { margin-top: 10px; }
+@media (max-width: 760px) {
+  .hero, .two, .cols, .mgrid { grid-template-columns: minmax(0, 1fr); }
+  .hero { gap: 8px; }
+}
+</style>
+</head>
+<body>
+<header><a class="brand" href="index.html">A4G Labs</a><nav aria-label="Pages"><a href="models.html">Models</a><a href="publications.html">Publications</a><a href="members.html">Members</a><a href="lectures.html">Lectures</a></nav></header>
+<main class="wrap"><style>
+/* MJBoost page: the site's white list layout, plus two small SVG charts. Series colours are the paper's
+   (Okabe-Ito, colour-blind safe): MJBoost vermilion, its order-2 part orange, EBM blue, LightGBM green. */
+.mj { display: grid; gap: clamp(44px, 6vw, 72px); min-width: 0; }
+.mj > *, .mj-two > * { min-width: 0; }
+.mj-text { max-width: 760px; }
+.mj-text + figure { margin-top: 18px; }
+.mj-hero { display: grid; gap: 14px; max-width: 760px; }
+.mj-hero .lead { font-size: clamp(17px, 1.7vw, 20px); color: var(--muted); }
+.mj-hero .by { font-size: 14px; color: var(--muted); }
+.mj-install { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.mj-install code { font: 500 15px/1 var(--mono); background: #f5f6f8; border: 1px solid var(--line); border-radius: 6px; padding: 11px 14px; }
+.mj-btn { font: 500 14px/1 var(--body); color: #fff; background: var(--navy); border: 0; border-radius: 6px; padding: 11px 14px; cursor: pointer; text-decoration: none; }
+.mj-btn.ghost { color: var(--navy); background: transparent; border: 1px solid var(--line); }
+.mj-btn:hover { color: #fff; filter: brightness(1.15); }
+.mj-btn.ghost:hover { color: var(--navy); background: #f5f6f8; filter: none; }
+.mj-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.mj-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 clamp(20px, 3vw, 40px); }
+.mj-stats div { border-top: 1px solid var(--line); padding-top: 14px; }
+.mj-stats b { display: block; font: 700 clamp(26px, 3vw, 34px)/1.1 var(--display); color: var(--ink); font-variant-numeric: tabular-nums; }
+.mj-stats span { display: block; margin-top: 6px; font-size: 14px; color: var(--muted); }
+.mj-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px clamp(28px, 5vw, 60px); align-items: start; }
+.mj p.body { font-size: 16px; line-height: 1.6; }
+.mj p.body + p.body { margin-top: 12px; }
+.mj figure { margin: 0; }
+.mj figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; }
+.mj figcaption { font-size: 13.5px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+.mj h3 { font: 700 clamp(20px, 2.2vw, 26px)/1.25 var(--display); margin-bottom: 10px; text-wrap: balance; }
+.mj-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.mj-tabs button { font: 500 13.5px/1 var(--body); color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+.mj-tabs button[aria-pressed="true"] { color: #fff; background: var(--navy); border-color: var(--navy); }
+.mj-tabs button:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.mj-chart { position: relative; width: 100%; }
+.mj-chart svg { display: block; width: 100%; height: auto; overflow: visible; font-family: var(--body); }
+.mj-chart .ax { stroke: #c9ced5; stroke-width: 1; }
+.mj-chart .grid { stroke: #eef0f3; stroke-width: 1; }
+.mj-chart text { fill: var(--muted); font-size: 12px; }
+.mj-chart text.lab { fill: var(--ink); font-size: 12.5px; }
+.mj-legend { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13.5px; color: var(--muted); margin: 2px 0 6px; }
+.mj-legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; }
+.mj-legend i.dash { border-top-style: dashed; }
+.mj-legend i.dot { width: 9px; height: 9px; border: 2px solid; border-radius: 50%; }
+.mj-legend i.fill { width: 11px; height: 11px; border: 0; border-radius: 50%; }
+.mj-tip { position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 6px 18px rgba(24, 42, 105, .12);
+  padding: 8px 10px; font-size: 13px; line-height: 1.45; color: var(--ink); white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); opacity: 0; transition: opacity .12s; z-index: 2; }
+.mj-tip.on { opacity: 1; }
+.mj-tip b { font-weight: 600; }
+.mj-tip .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.mj pre { margin: 0; overflow-x: auto; background: #f5f6f8; border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; font: 400 13.5px/1.6 var(--mono); color: var(--ink); }
+.mj pre .c { color: #7a828c; }
+.mj-cite { font-size: 15px; line-height: 1.6; border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 760px) { .mj-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; } .mj-two { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .mj-tip { transition: none; } }
+</style>
+
+<div class="mj">
+<section class="mj-hero">
+  <h2>Interpretable machine learning</h2>
+  <h1>MJBoost</h1>
+  <p class="lead">Gradient boosting with Kolmogorov–Arnold units: interpretable regression and classification beyond pairwise interactions.</p>
+  <div class="mj-install">
+    <code id="mj-pip">pip install mjboost</code>
+    <button class="mj-btn ghost" id="mj-copy" type="button">Copy</button>
+    <a class="mj-btn" href="https://colab.research.google.com/github/a4glabs/a4glabs.github.io/blob/main/mjboost/mjboost_colab_demo.ipynb" target="_blank" rel="noopener">Open the Colab demo</a>
+    <a class="mj-btn ghost" href="https://pypi.org/project/mjboost/" target="_blank" rel="noopener">PyPI</a>
+  </div>
+  <p class="by">Minjong Cheon, Hanseon Joo, Eunji Lee · 2026</p>
+</section>
+
+<section class="mj-stats" aria-label="Results">
+  <div><b>21 of 35</b><span>regression tasks with a significantly lower test RMSE than EBM (2 higher)</span></div>
+  <div><b>−29.1%</b><span>geometric-mean test RMSE against EBM on OpenML-CTR23</span></div>
+  <div><b>13×</b><span>lower error than EBM on targets of interaction order three to six</span></div>
+  <div><b>8 of 11</b><span>multiclass tasks with a lower log-loss than EBM</span></div>
+</section>
+
+<section>
+  <div class="mj-text">
+    <h2>How it works</h2>
+    <h3>One Kolmogorov–Arnold unit per round</h3>
+    <p class="body">Each boosting round adds one unit g(φ<sub>1</sub>(x<sub>1</sub>) + φ<sub>2</sub>(x<sub>2</sub>) + …). Its inner and outer
+      functions are penalized splines, fitted in closed form by alternating penalized least squares, without stochastic
+      gradient descent. Categorical and missing inputs enter the units directly.</p>
+    <p class="body">Because a unit sees each input through one inner function, the fitted model splits exactly into main
+      effects, pair surfaces and a higher-order remainder: a functional ANOVA that one-dimensional convolutions compute.
+      Where the data allow, the model reads as curves and surfaces; where they do not, the decomposition measures how much
+      lies beyond pairs.</p>
+  </div>
+  <figure>
+    <a href="mjboost/overview.webp" target="_blank" rel="noopener"><img src="mjboost/overview.webp" width="2035" height="1170" loading="lazy" alt="MJBoost on airfoil self-noise: five inputs, two fitted Kolmogorov-Arnold units, the boosted prediction, and its exact functional ANOVA into main effects, the strongest pair surface and variance shares"></a>
+    <figcaption>MJBoost on airfoil self-noise (CTR23, fold 0). Test RMSE 1.10 dB; its order-≤2 part alone 3.41 dB; EBM 1.55 dB.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Beyond pairs</h2>
+  <h3>Targets in which the first k of eight inputs act jointly</h3>
+  <p class="body" style="max-width:760px">EBM, limited to pairs, stalls at the error of the best order-≤2 approximation from k = 3, and so does
+    MJBoost truncated to its own order-≤2 part. The full model keeps the error low, up to 13 times lower than EBM's,
+    and its decomposition recovers the true variance share of every order to within 0.04.</p>
+  <div class="mj-tabs" role="group" aria-label="Target family" id="mj-fam">
+    <button type="button" data-f="ka_exp" aria-pressed="true">Exp of an additive index</button>
+    <button type="button" data-f="ka_sin" aria-pressed="false">Sine of an additive index</button>
+    <button type="button" data-f="product" aria-pressed="false">Product of inputs</button>
+  </div>
+  <div class="mj-legend"><span><i style="border-color:#D55E00"></i>MJBoost</span><span><i class="dash" style="border-color:#E69F00"></i>MJBoost, main and pair part only</span><span><i style="border-color:#0072B2"></i>EBM</span></div>
+  <div class="mj-chart" id="mj-order"></div>
+  <p class="muted" style="font-size:13.5px;margin-top:6px">Normalized test RMSE (RMSE / sd of the noise-free target, log scale), mean over three seeds; 3,000 training rows.</p>
+</section>
+
+<section>
+  <h2>OpenML-CTR23</h2>
+  <h3>Every one of the 35 regression tasks</h3>
+  <p class="body" style="max-width:760px">Ten folds per task. Against EBM, MJBoost has a significantly lower test RMSE on 21 tasks and a
+    higher one on 2, with a 29.1% lower geometric-mean RMSE. Against tuned LightGBM, a black box, it is
+    significantly lower on 10 and higher on 12, with a 13.2% lower geometric-mean RMSE.</p>
+  <div class="mj-tabs" role="group" aria-label="Baseline" id="mj-base">
+    <button type="button" data-b="ebm" aria-pressed="true">Against EBM</button>
+    <button type="button" data-b="lgbm" aria-pressed="false">Against tuned LightGBM</button>
+  </div>
+  <div class="mj-legend" id="mj-ctr-legend"></div>
+  <div class="mj-chart" id="mj-ctr"></div>
+  <p class="muted" style="font-size:13.5px;margin-top:6px">Ratio of the ten-fold mean test RMSEs, MJBoost / baseline (log scale; left of 1: MJBoost more accurate). † task of the development data.</p>
+</section>
+
+<section>
+  <div class="mj-text">
+    <h2>Reading a fitted model</h2>
+    <h3>Curves and surfaces, exactly</h3>
+    <p class="body">Main and pair effects reproduce 0.994 of the variance of the King County model, so it reads almost entirely as
+      curves and surfaces, each an exact part of the model. Its test RMSE is 100.2 thousand USD, below tuned LightGBM
+      (100.6) and EBM (105.3); its readable part alone gives 104.1.</p>
+    <p class="body">With Newton steps the same unit fit classifies: on 32 binary tasks of OpenML-CC18 its log-loss is on par
+      with EBM's, and on 11 multiclass tasks its mean log-loss is lower than EBM's on 8 and than tuned LightGBM's on 7.</p>
+  </div>
+  <figure>
+    <a href="mjboost/case.webp" target="_blank" rel="noopener"><img src="mjboost/case.webp" width="2001" height="939" loading="lazy" alt="King County house prices read through the functional ANOVA: a map of the location effect of every test house, main effects of grade, above-ground area and year built, the area effect at three latitudes, and the test RMSE of the full model, its truncations, EBM and tuned LightGBM"></a>
+    <figcaption>King County house prices (CTR23, fold 0): location effect of every test house, main effects, the area effect at three latitudes, and accuracy.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Use it</h2>
+  <h3>A scikit-learn estimator</h3>
+<pre><span class="c"># pip install mjboost</span>
+from mjboost import MJBoostRegressor, MJBoostClassifier
+
+model = MJBoostRegressor().fit(X_train, y_train)    <span class="c"># pandas DataFrame: categories and NaN as they are</span>
+pred = model.predict(X_test)
+
+ex = model.explain()                                <span class="c"># exact functional ANOVA</span>
+ex.shares(X_test)                                   <span class="c"># variance of main / pair / higher-order parts</span>
+ex.plot_main("age"); ex.plot_pair("lat", "long")
+
+clf = MJBoostClassifier().fit(X_train, labels)      <span class="c"># two or more classes</span>
+clf.explain(class_="setosa").importance(X_test)</pre>
+</section>
+
+<section>
+  <h2>Cite</h2>
+  <p class="mj-cite">Minjong Cheon, Hanseon Joo and Eunji Lee. Gradient Boosting with Kolmogorov–Arnold Units for Interpretable
+    Regression beyond Pairwise Interactions. 2026.</p>
+</section>
+</div>
+
+<script>
+(() => {
+  const D = {"order":{"ka_exp":[{"k":2,"kau":0.017562188273817222,"up2":0.01748927833568686,"ebm":0.04791174216756341},{"k":3,"kau":0.01688929620152139,"up2":0.18517351598353515,"ebm":0.20565257822267682},{"k":4,"kau":0.02323857016213297,"up2":0.2525533788177153,"ebm":0.2818870337570447},{"k":5,"kau":0.02835509948695671,"up2":0.2946413290163214,"ebm":0.33228860042413927},{"k":6,"kau":0.05349030916588893,"up2":0.32680796066499274,"ebm":0.3722464629801143}],"ka_sin":[{"k":2,"kau":0.09054056132597804,"up2":0.0800753702503812,"ebm":0.09669733916864091},{"k":3,"kau":0.08488650508486957,"up2":0.9478695960350997,"ebm":0.9774723623725027},{"k":4,"kau":0.07815079680475212,"up2":0.9511216948402222,"ebm":0.98032471719621},{"k":5,"kau":0.08542558527970116,"up2":0.965453482834231,"ebm":0.985471681671819},{"k":6,"kau":0.091053094846249,"up2":0.9695945921903286,"ebm":0.9838397659289236}],"product":[{"k":2,"kau":0.03698334344420378,"up2":0.036904577999060974,"ebm":0.05881707598665387},{"k":3,"kau":0.1381681279686533,"up2":1.0039362601040647,"ebm":1.0032811218054716},{"k":4,"kau":0.285749417033829,"up2":1.0021450532239242,"ebm":1.003329291332034},{"k":5,"kau":0.5580504001947452,"up2":1.0076309571904558,"ebm":1.0041991874089025},{"k":6,"kau":0.8226079682085744,"up2":1.0165353162022288,"ebm":1.0040798200491505}]},"tasks":[{"name":"forest fires","n":517,"d":12,"dev":false,"ebm":1.036532898845325,"lgbm":1.0390556425733992,"ebm_sig":false,"lgbm_sig":false},{"name":"student performance","n":649,"d":30,"dev":false,"ebm":0.9794368141681657,"lgbm":1.0140987977781508,"ebm_sig":false,"lgbm_sig":false},{"name":"energy efficiency","n":768,"d":8,"dev":true,"ebm":0.6789779454036229,"lgbm":0.99273497587558,"ebm_sig":true,"lgbm_sig":false},{"name":"cars","n":804,"d":17,"dev":false,"ebm":1.0087039938585112,"lgbm":0.978191911914611,"ebm_sig":false,"lgbm_sig":false},{"name":"QSAR fish toxicity","n":908,"d":6,"dev":false,"ebm":0.9904234766584452,"lgbm":1.0012026156354081,"ebm_sig":false,"lgbm_sig":false},{"name":"concrete compressive strength","n":1030,"d":8,"dev":true,"ebm":0.9962969393259598,"lgbm":1.031950275632507,"ebm_sig":false,"lgbm_sig":false},{"name":"geographical origin of music","n":1059,"d":116,"dev":false,"ebm":1.0364364247325708,"lgbm":1.0729894195816019,"ebm_sig":true,"lgbm_sig":true},{"name":"solar flare","n":1066,"d":10,"dev":false,"ebm":1.0059718685972172,"lgbm":1.0094590968232025,"ebm_sig":false,"lgbm_sig":false},{"name":"socmob","n":1156,"d":5,"dev":false,"ebm":0.7478402935156933,"lgbm":0.8387313896331287,"ebm_sig":true,"lgbm_sig":true},{"name":"Moneyball","n":1232,"d":14,"dev":false,"ebm":0.9919102665791706,"lgbm":0.9439841120022681,"ebm_sig":false,"lgbm_sig":true},{"name":"airfoil self-noise","n":1503,"d":5,"dev":true,"ebm":0.6187561014270725,"lgbm":1.0264520934159098,"ebm_sig":true,"lgbm_sig":false},{"name":"red wine","n":1599,"d":11,"dev":false,"ebm":0.9403859745444115,"lgbm":1.0023807432263871,"ebm_sig":true,"lgbm_sig":false},{"name":"auction verification","n":2043,"d":7,"dev":false,"ebm":0.24517305901932607,"lgbm":0.8439522975534883,"ebm_sig":true,"lgbm_sig":true},{"name":"space_ga","n":3107,"d":6,"dev":false,"ebm":0.924373184461876,"lgbm":0.9236151512856604,"ebm_sig":true,"lgbm_sig":true},{"name":"abalone","n":4177,"d":8,"dev":true,"ebm":0.9722719835541777,"lgbm":0.9727154067732199,"ebm_sig":true,"lgbm_sig":true},{"name":"white wine","n":4898,"d":11,"dev":false,"ebm":0.9098286055003102,"lgbm":1.028221536050106,"ebm_sig":true,"lgbm_sig":true},{"name":"CPU activity","n":8192,"d":21,"dev":false,"ebm":0.9843817413913999,"lgbm":1.0684215947397118,"ebm_sig":false,"lgbm_sig":true},{"name":"kin8nm","n":8192,"d":8,"dev":false,"ebm":0.43280275973333865,"lgbm":0.6723106970690086,"ebm_sig":true,"lgbm_sig":true},{"name":"pumadyn32nh","n":8192,"d":32,"dev":false,"ebm":1.0641268663065115,"lgbm":1.1116158717173086,"ebm_sig":true,"lgbm_sig":true},{"name":"grid stability","n":10000,"d":12,"dev":false,"ebm":0.8227657855610432,"lgbm":1.056002445010391,"ebm_sig":true,"lgbm_sig":true},{"name":"Brazilian houses","n":10692,"d":9,"dev":false,"ebm":0.3906282490086771,"lgbm":0.3196731734417234,"ebm_sig":false,"lgbm_sig":true},{"name":"naval propulsion plant","n":11934,"d":14,"dev":false,"ebm":0.05773321590714896,"lgbm":0.04342531018312333,"ebm_sig":true,"lgbm_sig":true},{"name":"Miami housing","n":13932,"d":15,"dev":false,"ebm":0.9352737725244019,"lgbm":1.027939772879446,"ebm_sig":true,"lgbm_sig":true},{"name":"FIFA","n":19178,"d":28,"dev":false,"ebm":0.9950793494675834,"lgbm":1.0009177167577032,"ebm_sig":false,"lgbm_sig":false},{"name":"California housing","n":20640,"d":8,"dev":true,"ebm":0.9836235775257548,"lgbm":1.0507371072435956,"ebm_sig":true,"lgbm_sig":true},{"name":"superconductivity","n":21263,"d":81,"dev":false,"ebm":0.9369901305520658,"lgbm":1.0409710787706896,"ebm_sig":true,"lgbm_sig":true},{"name":"King County","n":21613,"d":21,"dev":false,"ebm":0.9579938650217175,"lgbm":1.0104510754948344,"ebm_sig":true,"lgbm_sig":false},{"name":"health insurance","n":22272,"d":11,"dev":false,"ebm":0.9990600839512832,"lgbm":1.0013021223021843,"ebm_sig":false,"lgbm_sig":true},{"name":"FPS benchmark","n":24624,"d":43,"dev":false,"ebm":0.14289696347638,"lgbm":0.5996879541032278,"ebm_sig":true,"lgbm_sig":true},{"name":"CPS88 wages","n":28155,"d":6,"dev":false,"ebm":0.9996865550992099,"lgbm":1.0002718279881824,"ebm_sig":false,"lgbm_sig":false},{"name":"physiochemical protein","n":45730,"d":9,"dev":false,"ebm":0.858840100553042,"lgbm":1.0103031074006386,"ebm_sig":true,"lgbm_sig":true},{"name":"SARCOS","n":48933,"d":21,"dev":false,"ebm":0.8032545485298664,"lgbm":0.9735670130586993,"ebm_sig":true,"lgbm_sig":true},{"name":"diamonds","n":53940,"d":9,"dev":false,"ebm":0.8975100015391096,"lgbm":1.0213294916180995,"ebm_sig":true,"lgbm_sig":false},{"name":"video transcoding","n":68784,"d":18,"dev":false,"ebm":0.16518685792811033,"lgbm":1.1636581772121044,"ebm_sig":true,"lgbm_sig":true},{"name":"wave energy","n":72000,"d":48,"dev":false,"ebm":0.9637375994767898,"lgbm":1.035247653368803,"ebm_sig":true,"lgbm_sig":true}]};
+  const C = { kau: "#D55E00", up2: "#E69F00", ebm: "#0072B2", lgbm: "#009E73" };
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+  const fmt = (v) => v >= 0.1 ? v.toFixed(3) : v.toFixed(4);
+  const pct = (r) => { const p = (r - 1) * 100; return (p < 0 ? "−" : "+") + Math.abs(p).toFixed(1) + "%"; };
+  function tipFor(box) { const t = document.createElement("div"); t.className = "mj-tip"; t.setAttribute("role", "status"); box.appendChild(t); return t; }
+
+  // copy button
+  const copy = document.getElementById("mj-copy");
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText("pip install mjboost"); copy.textContent = "Copied"; }
+    catch (e) { copy.textContent = "Select and copy"; }
+    setTimeout(() => { copy.textContent = "Copy"; }, 1600);
+  });
+
+  // chart 1: interaction-order sweep
+  const ob = document.getElementById("mj-order");
+  let fam = "ka_exp";
+  function drawOrder() {
+    ob.querySelectorAll("svg, .mj-tip").forEach((n) => n.remove());
+    const W = Math.max(300, ob.clientWidth), H = Math.round(Math.min(380, Math.max(240, W * 0.42)));
+    const m = { l: 52, r: 18, t: 12, b: 38 };
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Normalized test RMSE against the order of the target" }, ob);
+    const tip = tipFor(ob);
+    const ks = [2, 3, 4, 5, 6], lo = Math.log10(0.01), hi = Math.log10(1.6);
+    const x = (k) => m.l + (k - 2) / 4 * (W - m.l - m.r);
+    const y = (v) => m.t + (hi - Math.log10(Math.max(v, 0.01))) / (hi - lo) * (H - m.t - m.b);
+    [0.01, 0.03, 0.1, 0.3, 1].forEach((v) => {
+      el("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), class: "grid" }, svg);
+      el("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, svg).textContent = v;
+    });
+    ks.forEach((k) => { el("text", { x: x(k), y: H - m.b + 20, "text-anchor": "middle" }, svg).textContent = "k = " + k; });
+    el("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, class: "ax" }, svg);
+    const rows = D.order[fam];
+    [["ebm", "", 2], ["up2", "6 4", 2], ["kau", "", 2.5]].forEach(([key, dash, sw]) => {
+      el("polyline", { points: rows.map((r) => `${x(r.k)},${y(r[key])}`).join(" "), fill: "none", stroke: C[key], "stroke-width": sw, "stroke-dasharray": dash, "stroke-linejoin": "round" }, svg);
+      rows.forEach((r) => el("circle", { cx: x(r.k), cy: y(r[key]), r: 4.5, fill: C[key], stroke: "#fff", "stroke-width": 2 }, svg));
+    });
+    const cross = el("line", { x1: 0, x2: 0, y1: m.t, y2: H - m.b, stroke: "#9aa3ad", "stroke-width": 1, "stroke-dasharray": "3 3", opacity: 0 }, svg);
+    const hit = el("rect", { x: m.l - 20, y: 0, width: W - m.l - m.r + 40, height: H, fill: "transparent" }, svg);
+    const show = (ev) => {
+      const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * W / r.width;
+      const k = Math.min(6, Math.max(2, Math.round(2 + (px - m.l) / (W - m.l - m.r) * 4))), row = rows[k - 2];
+      cross.setAttribute("x1", x(k)); cross.setAttribute("x2", x(k)); cross.setAttribute("opacity", 1);
+      tip.innerHTML = `<b>k = ${k}</b><br><span style="color:${C.kau}">●</span> MJBoost <span class="num">${fmt(row.kau)}</span><br>` +
+        `<span style="color:${C.up2}">●</span> main + pairs <span class="num">${fmt(row.up2)}</span><br><span style="color:${C.ebm}">●</span> EBM <span class="num">${fmt(row.ebm)}</span>`;
+      tip.style.left = (x(k) / W * r.width) + "px"; tip.style.top = (y(Math.max(row.kau, row.up2, row.ebm)) / H * r.height) + "px"; tip.classList.add("on");
+    };
+    hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show);
+    hit.addEventListener("pointerleave", () => { tip.classList.remove("on"); cross.setAttribute("opacity", 0); });
+  }
+  document.querySelectorAll("#mj-fam button").forEach((b) => b.addEventListener("click", () => {
+    fam = b.dataset.f; document.querySelectorAll("#mj-fam button").forEach((o) => o.setAttribute("aria-pressed", o === b)); drawOrder();
+  }));
+
+  // chart 2: CTR23 per-task ratios
+  const cb = document.getElementById("mj-ctr"), leg = document.getElementById("mj-ctr-legend");
+  let base = "ebm";
+  function drawCtr() {
+    cb.querySelectorAll("svg, .mj-tip").forEach((n) => n.remove());
+    const col = C[base], label = base === "ebm" ? "EBM" : "tuned LightGBM";
+    leg.innerHTML = `<span><i class="fill" style="background:${col}"></i>significant (paired t-test, p &lt; 0.05)</span><span><i class="dot" style="border-color:${col}"></i>not significant</span>`;
+    const T = D.tasks.slice().sort((a, b) => a[base] - b[base]);
+    const W = Math.max(300, cb.clientWidth), narrow = W < 560, rowH = 19;
+    const m = { l: narrow ? 128 : 190, r: 16, t: 6, b: 34 }, H = m.t + m.b + T.length * rowH;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Test RMSE ratio of MJBoost to ${label} on each CTR23 task` }, cb);
+    const tip = tipFor(cb);
+    const lo = Math.log10(0.03), hi = Math.log10(2.5);
+    const x = (v) => m.l + (Math.log10(v) - lo) / (hi - lo) * (W - m.l - m.r);
+    [0.05, 0.1, 0.2, 0.5, 1, 2].forEach((v) => {
+      el("line", { x1: x(v), x2: x(v), y1: m.t, y2: H - m.b, class: v === 1 ? "ax" : "grid", "stroke-width": v === 1 ? 1.5 : 1 }, svg);
+      el("text", { x: x(v), y: H - m.b + 18, "text-anchor": "middle" }, svg).textContent = v;
+    });
+    T.forEach((t, i) => {
+      const cy = m.t + (i + 0.5) * rowH, sig = t[base + "_sig"];
+      const lab = el("text", { x: m.l - 10, y: cy + 4, "text-anchor": "end", class: "lab" }, svg), tail = t.dev ? " †" : "";
+      lab.textContent = t.name + tail;
+      for (let n = t.name.length - 1; n > 4 && lab.getComputedTextLength() > m.l - 14; n--) lab.textContent = t.name.slice(0, n) + "…" + tail;
+      el("line", { x1: x(1), x2: x(Math.min(Math.max(t[base], 0.03), 2.5)), y1: cy, y2: cy, stroke: col, "stroke-width": 1.5, opacity: 0.35 }, svg);
+      el("circle", { cx: x(Math.min(Math.max(t[base], 0.03), 2.5)), cy, r: 5.5, fill: sig ? col : "#fff", stroke: sig ? "#fff" : col, "stroke-width": 2 }, svg);
+      const hit = el("rect", { x: 0, y: cy - rowH / 2, width: W, height: rowH, fill: "transparent" }, svg);
+      const show = () => {
+        const r = svg.getBoundingClientRect();
+        tip.innerHTML = `<b>${t.name}</b>${t.dev ? " †" : ""}<br>MJBoost / ${label}: <span class="num">${t[base].toFixed(3)}</span> (${pct(t[base])})<br>` +
+          `<span class="muted">${t.n.toLocaleString()} rows, ${t.d} inputs · ${sig ? "p < 0.05" : "not significant"}</span>`;
+        tip.style.left = (x(Math.min(Math.max(t[base], 0.03), 2.5)) / W * r.width) + "px"; tip.style.top = ((cy - 6) / H * r.height) + "px"; tip.classList.add("on");
+      };
+      hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show);
+      hit.addEventListener("pointerleave", () => tip.classList.remove("on"));
+    });
+  }
+  document.querySelectorAll("#mj-base button").forEach((b) => b.addEventListener("click", () => {
+    base = b.dataset.b; document.querySelectorAll("#mj-base button").forEach((o) => o.setAttribute("aria-pressed", o === b)); drawCtr();
+  }));
+
+  const draw = () => { drawOrder(); drawCtr(); };
+  draw();
+  let w0 = window.innerWidth, timer;
+  window.addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(() => { if (Math.abs(window.innerWidth - w0) > 4) { w0 = window.innerWidth; draw(); } }, 120); });
+})();
+</script>
+</main>
+</body>
+</html>
